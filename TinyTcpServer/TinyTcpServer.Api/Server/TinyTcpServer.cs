@@ -46,12 +46,20 @@ namespace TinyTcpServer.Api.Server
 
         public void AddHandler(TcpClientInfo clientInfo, Func<Byte[], TcpClientInfo, Byte[]> handler)
         {
-            throw new NotImplementedException();
+            if(clientInfo == null)
+                throw new ArgumentNullException("clientInfo");
+            if(handler == null)
+                throw new ArgumentNullException("handler");
+            Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>> existingHandler =_clientsHandlers.FirstOrDefault(item => item.Item1.Id.Equals(clientInfo.Id));
+            if (existingHandler == null)
+                _clientsHandlers.Add(new Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>>(clientInfo, handler));
         }
 
         public void RemoveHandler(TcpClientInfo clientInfo)
         {
-            throw new NotImplementedException();
+            Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>> handler =_clientsHandlers.FirstOrDefault(item => item.Item1.Id.Equals(clientInfo.Id));
+            if (handler != null)
+                _clientsHandlers.Remove(handler);
         }
 
         public void SendData(TcpClientInfo clientInfo, Byte[] data)
@@ -90,6 +98,13 @@ namespace TinyTcpServer.Api.Server
         private void ReleaseClientsHandlers()
         {
             _clientsHandlers.Clear();
+        }
+
+        private void StartClientProcessing()
+        {
+            // 1. waiting for connection ...
+            // 2. handle clients ...
+            // 3. check "disconnected" clients ...
         }
 
         private const String DefaultServerIpAddress = "127.0.0.1";
