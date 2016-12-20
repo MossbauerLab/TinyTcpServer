@@ -6,7 +6,7 @@ namespace TinyTcpServer.Api.Server
     public interface ITcpServer
     {
         Boolean Start(String ipAddress, UInt16 port);
-        void Stop();
+        void Stop(Boolean clearHandlers);
         void Restart();
         // handler functions
         void AddHandler(TcpClientInfo clientInfo, Func<Byte[], TcpClientInfo, Byte[]> handler);
