@@ -1,7 +1,7 @@
 ﻿using System;
-using TinyTcpServer.Api.Client;
+using TinyTcpServer.Core.Client;
 
-namespace TinyTcpServer.Api.Server
+namespace TinyTcpServer.Core.Server
 {
     public interface ITcpServer
     {

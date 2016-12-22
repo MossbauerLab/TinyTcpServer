@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TinyTcpServer.Api.Client
+namespace TinyTcpServer.Core.Client
 {
     public class TcpClientInfo
     {

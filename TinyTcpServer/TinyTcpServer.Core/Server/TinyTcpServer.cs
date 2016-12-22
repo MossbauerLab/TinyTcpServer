@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using TinyTcpServer.Api.Client;
+using TinyTcpServer.Core.Client;
 
-namespace TinyTcpServer.Api.Server
+namespace TinyTcpServer.Core.Server
 {
     public class TinyTcpServer : ITcpServer
     {
