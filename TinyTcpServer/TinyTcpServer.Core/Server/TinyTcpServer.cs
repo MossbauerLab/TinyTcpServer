@@ -108,7 +108,14 @@ namespace TinyTcpServer.Core.Server
                 // 1. waiting for connection ...
                 Task.Factory.StartNew(ClientConnectProcessing);
                 // 2. handle clients ... (read + write)
-
+                for (Int32 clientCounter = 0; clientCounter < _tcpClients.Count; clientCounter++)
+                {
+                    if (CheckClientConnected(_tcpClients[clientCounter].Client))
+                    {
+                        TcpClientContext client = _tcpClients[clientCounter];
+                        Task.Factory.StartNew(() => ProcessClientReceiveSend(client));
+                    }
+                }
                 // 3. check "disconnected" clients ...
                 IList<TcpClientContext> disoonnectedClients = _tcpClients.Where(client => !CheckClientConnected(client.Client)).ToList();
                 foreach (TcpClientContext client in disoonnectedClients)
@@ -161,7 +168,30 @@ namespace TinyTcpServer.Core.Server
             }
         }
 
-        private Byte[] RecieveImpl(TcpClientContext client)
+        private void ProcessClientReceiveSend(TcpClientContext client)
+        {
+            Byte[] receivedData = ReceiveImpl(client);
+            if (receivedData != null)
+            {
+                IList<Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>>>  linkedHandlers =
+                _clientsHandlers.Where(item =>
+                {
+                    //todo: umv: add special selection for AnyPort and AnyIp
+                    Boolean ipCheck= String.Equals(item.Item1.IpAddress, ((IPEndPoint) client.Client.Client.RemoteEndPoint).Address.ToString());
+                    Boolean portCheck = item.Item1.Port == ((IPEndPoint) client.Client.Client.RemoteEndPoint).Port;
+                    Boolean result = ipCheck && portCheck;
+                    return result;
+                }).ToList();
+
+                foreach (Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>> handler in linkedHandlers)
+                {
+                    Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
+                    //todo: unv: add send
+                }
+            }
+        }
+
+        private Byte[] ReceiveImpl(TcpClientContext client)
         {
             Byte[] buffer = new Byte[DefaultClientBufferSize];
             client.ReadDataEvent.Reset();
