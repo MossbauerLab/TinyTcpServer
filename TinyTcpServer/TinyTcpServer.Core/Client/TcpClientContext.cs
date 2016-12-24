@@ -14,10 +14,12 @@ namespace TinyTcpServer.Core.Client
             Client = client;
             BytesRead = 0;
             ReadDataEvent = new ManualResetEventSlim();
+            WriteDataEvent = new ManualResetEventSlim();
         }
 
         public Int32 BytesRead { get; set; }
         public TcpClient Client { get; private set; }
         public ManualResetEventSlim ReadDataEvent { get; set; }
+        public ManualResetEventSlim WriteDataEvent { get; set; }
     }
 }

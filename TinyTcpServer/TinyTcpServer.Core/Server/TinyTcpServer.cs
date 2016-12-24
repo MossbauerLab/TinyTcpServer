@@ -65,7 +65,19 @@ namespace TinyTcpServer.Core.Server
 
         public void SendData(TcpClientInfo clientInfo, Byte[] data)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            IList<TcpClientContext> selectedClients = _tcpClients.Where(item =>
+            {
+                Boolean ipCheck = String.Equals(((IPEndPoint) item.Client.Client.RemoteEndPoint).Address.ToString(), clientInfo.IpAddress);
+                Boolean portCheck = ((IPEndPoint) item.Client.Client.RemoteEndPoint).Port == clientInfo.Port;
+                return ipCheck && portCheck;
+            }).ToList();
+
+            for (Int32 clientCounter = 0; clientCounter < selectedClients.Count; clientCounter++)
+            {
+                TcpClientContext client = selectedClients[clientCounter];
+                Task.Factory.StartNew(() => SendImpl(client, data));
+            }
         }
 
         private void AssignIpAddressAndPort(String ipAddress, UInt16 port)
@@ -186,6 +198,8 @@ namespace TinyTcpServer.Core.Server
                 foreach (Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>> handler in linkedHandlers)
                 {
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
+                    if (dataForSend != null && dataForSend.Length > 0)
+                        SendImpl(client, dataForSend);
                     //todo: unv: add send
                 }
             }
@@ -235,6 +249,30 @@ namespace TinyTcpServer.Core.Server
             //Console.WriteLine("thread id: " + Thread.CurrentThread.ManagedThreadId);
         }
 
+        private void SendImpl(TcpClientContext client, Byte[] data)
+        {
+            try
+            {
+                client.WriteDataEvent.Reset();
+                NetworkStream netStream = client.Client.GetStream();
+                netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
+                client.WriteDataEvent.Wait(_writeTimeout);
+            }
+            catch (Exception)
+            {
+                //todo: umv: add error handling
+            }
+        }
+
+        private void WriteAsyncCallback(IAsyncResult state)
+        {
+            TcpClientContext client = state as TcpClientContext;
+            if (client == null)
+                throw new ApplicationException("state can't be null");
+            client.Client.GetStream().EndWrite(state);
+            client.WriteDataEvent.Set();
+        }
+
         private const String DefaultServerIpAddress = "127.0.0.1";
         private const Int32 DefaultServerPort = 16000;
         private const Int32 ServerCloseTimeout = 2000;
@@ -243,11 +281,13 @@ namespace TinyTcpServer.Core.Server
         private const Int32 DefaultClientConnectAttempts = 5;
         private const Int32 DefaultClientConnectTimeout = 200;
         private const Int32 DefaultReadTimrout = 1000;
+        private const Int32 DefaultWriteTimeout = 1000;
 
         // timeouts
         //todo: umv: make adjustable
         private Int32 _clientConnectTimeout = DefaultClientConnectTimeout;
         private Int32 _readTimeout = DefaultReadTimrout;
+        private Int32 _writeTimeout = DefaultWriteTimeout;
         // other parameters
         private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;
 
