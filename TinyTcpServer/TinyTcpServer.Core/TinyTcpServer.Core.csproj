@@ -40,14 +40,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client\TcpClientContext.cs" />
-    <Compile Include="Client\TcpClientInfo.cs" />
+    <Compile Include="GlobalDefs.cs" />
+    <Compile Include="Handlers\TcpClientHandlerInfo.cs" />
+    <Compile Include="Handlers\Utils\TcpClientHandlerSelector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\ITcpServer.cs" />
     <Compile Include="Server\TinyTcpServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Filtering\" />
-    <Folder Include="Handlers\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

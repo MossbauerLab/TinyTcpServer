@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace TinyTcpServer.Core.Client
+namespace TinyTcpServer.Core.Handlers
 {
-    public class TcpClientInfo
+    public class TcpClientHandlerInfo
     {
-        public TcpClientInfo(Guid id, String ipAddress, Int32 port = -1)
+        public TcpClientHandlerInfo(Guid id, String ipAddress, Int32 port = -1)
         {
             Id = id;
             IpAddress = ipAddress;

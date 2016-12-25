@@ -6,6 +6,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using TinyTcpServer.Core.Client;
+using TinyTcpServer.Core.Handlers;
+using TinyTcpServer.Core.Handlers.Utils;
 
 namespace TinyTcpServer.Core.Server
 {
@@ -45,32 +47,33 @@ namespace TinyTcpServer.Core.Server
             Start(_ipAddress, _port);
         }
 
-        public void AddHandler(TcpClientInfo clientInfo, Func<Byte[], TcpClientInfo, Byte[]> handler)
+        public void AddHandler(TcpClientHandlerInfo clientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]> handler)
         {
-            if(clientInfo == null)
-                throw new ArgumentNullException("clientInfo");
+            if(clientHandlerInfo == null)
+                throw new ArgumentNullException("clientHandlerInfo");
             if(handler == null)
                 throw new ArgumentNullException("handler");
-            Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>> existingHandler =_clientsHandlers.FirstOrDefault(item => item.Item1.Id.Equals(clientInfo.Id));
+            Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> existingHandler =_clientsHandlers.FirstOrDefault(item => item.Item1.Id.Equals(clientHandlerInfo.Id));
             if (existingHandler == null)
-                _clientsHandlers.Add(new Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>>(clientInfo, handler));
+                _clientsHandlers.Add(new Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>(clientHandlerInfo, handler));
         }
 
-        public void RemoveHandler(TcpClientInfo clientInfo)
+        public void RemoveHandler(TcpClientHandlerInfo clientHandlerInfo)
         {
-            Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>> handler =_clientsHandlers.FirstOrDefault(item => item.Item1.Id.Equals(clientInfo.Id));
+            Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler =_clientsHandlers.FirstOrDefault(item => item.Item1.Id.Equals(clientHandlerInfo.Id));
             if (handler != null)
                 _clientsHandlers.Remove(handler);
         }
 
-        public void SendData(TcpClientInfo clientInfo, Byte[] data)
+        public void SendData(TcpClientHandlerInfo clientHandlerInfo, Byte[] data)
         {
             //throw new NotImplementedException();
             IList<TcpClientContext> selectedClients = _tcpClients.Where(item =>
             {
-                Boolean ipCheck = String.Equals(((IPEndPoint) item.Client.Client.RemoteEndPoint).Address.ToString(), clientInfo.IpAddress);
-                Boolean portCheck = ((IPEndPoint) item.Client.Client.RemoteEndPoint).Port == clientInfo.Port;
-                return ipCheck && portCheck;
+                //Boolean ipCheck = String.Equals(((IPEndPoint) item.Client.Client.RemoteEndPoint).Address.ToString(), clientHandlerInfo.IpAddress);
+                //Boolean portCheck = ((IPEndPoint) item.Client.Client.RemoteEndPoint).Port == clientHandlerInfo.Port;
+                //return ipCheck && portCheck;
+                return TcpClientHandlerSelector.Select(clientHandlerInfo, item);
             }).ToList();
 
             for (Int32 clientCounter = 0; clientCounter < selectedClients.Count; clientCounter++)
@@ -185,17 +188,18 @@ namespace TinyTcpServer.Core.Server
             Byte[] receivedData = ReceiveImpl(client);
             if (receivedData != null)
             {
-                IList<Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>>>  linkedHandlers =
+                IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  linkedHandlers =
                 _clientsHandlers.Where(item =>
                 {
                     //todo: umv: add special selection for AnyPort and AnyIp
-                    Boolean ipCheck= String.Equals(item.Item1.IpAddress, ((IPEndPoint) client.Client.Client.RemoteEndPoint).Address.ToString());
-                    Boolean portCheck = item.Item1.Port == ((IPEndPoint) client.Client.Client.RemoteEndPoint).Port;
-                    Boolean result = ipCheck && portCheck;
+                    //Boolean ipCheck= String.Equals(item.Item1.IpAddress, ((IPEndPoint) client.Client.Client.RemoteEndPoint).Address.ToString());
+                    //Boolean portCheck = item.Item1.Port == ((IPEndPoint) client.Client.Client.RemoteEndPoint).Port;
+                    Boolean result = TcpClientHandlerSelector.Select(item.Item1, client);
+                        //ipCheck && portCheck;
                     return result;
                 }).ToList();
 
-                foreach (Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>> handler in linkedHandlers)
+                foreach (Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler in linkedHandlers)
                 {
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
                     if (dataForSend != null && dataForSend.Length > 0)
@@ -293,7 +297,7 @@ namespace TinyTcpServer.Core.Server
 
         private readonly ManualResetEventSlim _clientConnectEvent = new ManualResetEventSlim();
         
-        private readonly IList<Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>>>  _clientsHandlers = new List<Tuple<TcpClientInfo, Func<Byte[], TcpClientInfo, Byte[]>>>();
+        private readonly IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  _clientsHandlers = new List<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>();
         private readonly IList<TcpClientContext> _tcpClients = new List<TcpClientContext>(); 
         private readonly Object _synch = new Object();
         private String _ipAddress;
