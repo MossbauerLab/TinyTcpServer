@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TinyTcpServer.Api")]
+[assembly: AssemblyTitle("TcpServer.FunctionalTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("DDGroup")]
-[assembly: AssemblyProduct("TcpServer.Api")]
+[assembly: AssemblyProduct("TcpServer.FunctionalTests")]
 [assembly: AssemblyCopyright("Copyright © DDGroup 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("8468bc2a-1257-4d4b-bed3-39196f2f7160")]
+[assembly: Guid("fe39cdc6-f81e-4f3d-a260-264eb89ee498")]
 
 // Version information for an assembly consists of the following four values:
 //

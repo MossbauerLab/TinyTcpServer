@@ -11,9 +11,9 @@ using TinyTcpServer.Core.Handlers.Utils;
 
 namespace TinyTcpServer.Core.Server
 {
-    public class TinyTcpServer : ITcpServer
+    public class TcpServer : ITcpServer
     {
-        public TinyTcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort)
+        public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort)
         {
             AssignIpAddressAndPort(ipAddress, port);
         }
