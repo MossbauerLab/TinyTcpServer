@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("TinyTcpServer.Api")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("DDGroup")]
-[assembly: AssemblyProduct("TcpServer.Api")]
-[assembly: AssemblyCopyright("Copyright © DDGroup 2016")]
+[assembly: AssemblyCompany("MossbauerLab")]
+[assembly: AssemblyProduct("TcpServer.Core")]
+[assembly: AssemblyCopyright("Copyright © MossbauerLab 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
