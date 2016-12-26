@@ -49,6 +49,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             Int32 bytesReceived = 0;
             result = client.Read(actualData, out bytesReceived);
             client.Close();
+            _server.Stop(true);
             Assert.IsTrue(result, "Checking that read operation was performed successfully");
             Assert.AreEqual(expectedData.Length, bytesReceived, "Chechking that client received expected number of bytes");
             for (Int32 counter = 0; counter < expectedData.Length; counter++)

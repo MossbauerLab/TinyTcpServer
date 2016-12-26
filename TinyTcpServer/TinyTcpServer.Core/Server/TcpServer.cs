@@ -205,7 +205,7 @@ namespace TinyTcpServer.Core.Server
                         //ipCheck && portCheck;
                     return result;
                 }).ToList();
-
+                Console.WriteLine("selected handlers: " + linkedHandlers.Count);
                 foreach (Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler in linkedHandlers)
                 {
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
