@@ -5,21 +5,18 @@ using System.Threading;
 
 namespace TinyTcpServer.Core.FunctionalTests.TestUtils
 {
-    internal class Client
+    internal class NetworkClient
     {
-        public Client(String deviceId, EndPoint endPoint, Boolean isAsynchronous, Int32 connectionWaitTimeout = DefaultConnectionWaitTimeout,
+        public NetworkClient(EndPoint endPoint, Boolean isAsynchronous, Int32 connectionWaitTimeout = DefaultConnectionWaitTimeout,
                       Int32 readTimeout = DefaultReadTimeout, Int32 writeTimeout = DefaultWriteTimeout)
         {
             if(endPoint == null)
                 throw new ArgumentNullException("endPoint");
-            if(String.IsNullOrEmpty(deviceId))
-                throw new ArgumentException("deviceId");
             _endPoint = endPoint;
             _isAsynchronous = isAsynchronous;
             _connectionWaitTimeout = connectionWaitTimeout;
             _readTimeout = readTimeout;
             _writeTimeout = writeTimeout;
-            DeviceId = deviceId;
         }
 
         public Boolean Open()
@@ -29,22 +26,22 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
                 CreateSocket();
                 if (_clientSocket.Connected)
                 {
-                    DeviceState = _clientSocket.Connected;
-                    return DeviceState;
+                    State = _clientSocket.Connected;
+                    return State;
                 }
                 if (_isAsynchronous)
                 {
                     Boolean result = OpenAsync();
-                    DeviceState = _clientSocket.Connected;
+                    State = _clientSocket.Connected;
                     return result;
                 }
                 _clientSocket.Connect(_endPoint);
-                DeviceState = _clientSocket.Connected;
-                return DeviceState;
+                State = _clientSocket.Connected;
+                return State;
             }
             catch (Exception)
             {
-                DeviceState = false;
+                State = false;
                 return false;
             }
         }
@@ -61,7 +58,7 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             _readCompleted.Reset();
             _writeCompleted.Reset();
             _clientSocket.Dispose();
-            DeviceState = false;
+            State = false;
         }
 
         public Boolean Read(Byte[] data, out Int32 bytesRead)
@@ -116,7 +113,7 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             _waitCompleted.Reset();
             _clientSocket.BeginDisconnect(true, CloseAsyncCallback, _clientSocket);
             _waitCompleted.Wait(_connectionWaitTimeout);
-            DeviceState = _clientSocket.Connected;
+            State = _clientSocket.Connected;
         }
 
         private void OpenAsyncCallback(IAsyncResult result)
@@ -187,7 +184,7 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             //todo: umv make more complicated error handling
             try
             {
-                if (!DeviceState)
+                if (!State)
                     return false;
                 _bytesSend = 0;
                 while (_bytesSend < data.Length)
@@ -223,8 +220,7 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             _clientSocket.ReceiveTimeout = _readTimeout;
         }
 
-        public String DeviceId { get; private set; }
-        public Boolean DeviceState { get; private set; }
+        public Boolean State { get; private set; }
 
         private const Int32 MaximumPacketSize = 1536;
         private const Int32 DefaultConnectionWaitTimeout = 4000;

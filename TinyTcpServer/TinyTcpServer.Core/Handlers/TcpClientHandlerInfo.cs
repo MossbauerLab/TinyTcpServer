@@ -4,7 +4,7 @@ namespace TinyTcpServer.Core.Handlers
 {
     public class TcpClientHandlerInfo
     {
-        public TcpClientHandlerInfo(Guid id, String ipAddress, Int32 port = -1)
+        public TcpClientHandlerInfo(Guid id, String ipAddress = GlobalDefs.AnyIpAddress, Int32 port = GlobalDefs.AnyPort)
         {
             Id = id;
             IpAddress = ipAddress;
