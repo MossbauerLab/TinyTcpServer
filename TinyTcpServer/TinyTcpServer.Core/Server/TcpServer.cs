@@ -247,7 +247,7 @@ namespace TinyTcpServer.Core.Server
             {
                 // todo: umv: add exception handling ....
                 buffer = null;
-                Console.WriteLine("Something goes wrong [write]");
+                Console.WriteLine("Something goes wrong [read]");
             }
 
             return buffer;
@@ -255,7 +255,7 @@ namespace TinyTcpServer.Core.Server
 
         private void ReadAsyncCallback(IAsyncResult state)
         {
-            TcpClientContext client = state as TcpClientContext;
+            TcpClientContext client = state.AsyncState as TcpClientContext;
             if(client == null)
                 throw new ApplicationException("state can't be null");
             client.BytesRead +=client.Client.GetStream().EndRead(state);
@@ -281,7 +281,7 @@ namespace TinyTcpServer.Core.Server
 
         private void WriteAsyncCallback(IAsyncResult state)
         {
-            TcpClientContext client = state as TcpClientContext;
+            TcpClientContext client = state.AsyncState as TcpClientContext;
             if (client == null)
                 throw new ApplicationException("state can't be null");
             client.Client.GetStream().EndWrite(state);
