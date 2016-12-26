@@ -22,6 +22,7 @@ namespace TinyTcpServer.Core.Server
         {
             try
             {
+                _interruptRequested = false;
                 AssignIpAddressAndPort(ipAddress, port);
                 _tcpListener.Start();
                 Task.Factory.StartNew(StartClientProcessing);
@@ -35,6 +36,7 @@ namespace TinyTcpServer.Core.Server
 
         public void Stop(Boolean clearHandlers)
         {
+            _interruptRequested = true;
             _tcpListener.Stop();
             _tcpListener.Server.Close(ServerCloseTimeout);
             if (clearHandlers)
@@ -118,15 +120,19 @@ namespace TinyTcpServer.Core.Server
 
         private void StartClientProcessing()
         {
-            while (true)
+            while (!_interruptRequested)
             {
+                //Console.WriteLine("ROLLING...");
                 // 1. waiting for connection ...
-                Task.Factory.StartNew(ClientConnectProcessing);
+                Task.Factory.StartNew(ClientConnectProcessing).Wait();
+                //if(_tcpClients.Count > 0)
+                    //Console.WriteLine("We have clients: " + _tcpClients.Count);
                 // 2. handle clients ... (read + write)
                 for (Int32 clientCounter = 0; clientCounter < _tcpClients.Count; clientCounter++)
                 {
-                    if (CheckClientConnected(_tcpClients[clientCounter].Client))
+                    if (CheckClientConnected(_tcpClients[clientCounter].Client) && !_tcpClients[clientCounter].IsProcessing)
                     {
+                        _tcpClients[clientCounter].IsProcessing = true;
                         TcpClientContext client = _tcpClients[clientCounter];
                         Task.Factory.StartNew(() => ProcessClientReceiveSend(client));
                     }
@@ -185,6 +191,7 @@ namespace TinyTcpServer.Core.Server
 
         private void ProcessClientReceiveSend(TcpClientContext client)
         {
+            Console.WriteLine("ProcessClientReceiveSend called");
             Byte[] receivedData = ReceiveImpl(client);
             if (receivedData != null)
             {
@@ -204,21 +211,23 @@ namespace TinyTcpServer.Core.Server
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
                     if (dataForSend != null && dataForSend.Length > 0)
                         SendImpl(client, dataForSend);
-                    //todo: unv: add send
                 }
             }
+            client.IsProcessing = false;
         }
 
         private Byte[] ReceiveImpl(TcpClientContext client)
         {
+            Console.WriteLine("...receiving...");
             Byte[] buffer = new Byte[DefaultClientBufferSize];
             client.ReadDataEvent.Reset();
-            NetworkStream netStream = client.Client.GetStream();
             Object synch = new Object();
             client.BytesRead = 0;
-
+            
             try
             {
+                NetworkStream netStream = client.Client.GetStream();
+                netStream.ReadTimeout = 100;
                 while (netStream.DataAvailable || client.Client.Client.Poll(10000, SelectMode.SelectRead))
                 {
                     //Console.WriteLine("thread id: " + Thread.CurrentThread.ManagedThreadId);
@@ -232,11 +241,13 @@ namespace TinyTcpServer.Core.Server
                     client.ReadDataEvent.Wait(_readTimeout);
                 }
                 Array.Resize(ref buffer, client.BytesRead);
+                Console.WriteLine("bytes read: " + client.BytesRead);
             }
             catch (Exception)
             {
                 // todo: umv: add exception handling ....
                 buffer = null;
+                Console.WriteLine("Something goes wrong [write]");
             }
 
             return buffer;
@@ -303,5 +314,6 @@ namespace TinyTcpServer.Core.Server
         private String _ipAddress;
         private UInt16 _port;
         private TcpListener _tcpListener;
+        private Boolean _interruptRequested;
     }
 }

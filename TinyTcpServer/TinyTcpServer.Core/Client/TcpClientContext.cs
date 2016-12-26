@@ -15,8 +15,10 @@ namespace TinyTcpServer.Core.Client
             BytesRead = 0;
             ReadDataEvent = new ManualResetEventSlim();
             WriteDataEvent = new ManualResetEventSlim();
+            IsProcessing = false;
         }
 
+        public Boolean IsProcessing { get; set; }
         public Int32 BytesRead { get; set; }
         public TcpClient Client { get; private set; }
         public ManualResetEventSlim ReadDataEvent { get; set; }
