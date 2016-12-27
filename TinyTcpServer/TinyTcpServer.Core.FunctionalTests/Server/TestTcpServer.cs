@@ -10,6 +10,12 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
     [TestFixture]
     public class TestTcpServer
     {
+        [SetUp]
+        public void SetUp()
+        {
+            _server.Stop(true);
+        }
+
         [Test]
         public void TestStartSuccessfully()
         {
@@ -23,6 +29,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         }
 
         [TestCase (1024, 1)]
+        [TestCase(1024, 2)]
         [TestCase(1024, 16)]
         [TestCase(1024, 128)]
         [TestCase(1024, 666)]
@@ -35,7 +42,6 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1048576, 2)]
         public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition)
         {
-            //const Int32 clientPort = 4567;
             TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
             _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);            
             NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), true);
@@ -43,18 +49,23 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             Boolean result = _server.Start(LocalIpAddress, ServerPort1);
             Assert.IsTrue(result, "Checking that server was successfully opened");
             client.Open();
-            Byte[] expectedData = CreateRandomData(dataSize);
+
+
+            /*Byte[] expectedData = CreateRandomData(dataSize);
             Byte[] actualData = new Byte[expectedData.Length];
             Int32 bytesReceived ;
             result = client.Write(expectedData);
             Assert.IsTrue(result, "Checking that client successfully write data");
             result = client.Read(actualData, out bytesReceived);
-            client.Close();
-            _server.Stop(true);
             Assert.IsTrue(result, "Checking that read operation was performed successfully");
             Assert.AreEqual(expectedData.Length, bytesReceived, "Chechking that client received expected number of bytes");
             for (Int32 counter = 0; counter < expectedData.Length; counter++)
-                Assert.AreEqual(expectedData[counter], actualData[counter], String.Format("Checking that arrays bytes are equals at index {0}", counter));
+                Assert.AreEqual(expectedData[counter], actualData[counter], String.Format("Checking that arrays bytes are equals at index {0}", counter));*/
+            
+            
+            ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
+            client.Close();
+            _server.Stop(true);
         }
 
         private Byte[] CreateRandomData(Int32 size)
@@ -64,6 +75,23 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             for (Int32 counter = 0; counter < randomData.Length; counter++)
                 randomData[counter] = (Byte)randomGenerator.Next(0, 0x0F);
             return randomData;
+        }
+
+        private void ExchangeWithRandomDataAndCheck(NetworkClient client, Int32 dataSize, Int32 repetition)
+        {
+            for (Int32 repetitionCounter = 0; repetitionCounter < repetition; repetitionCounter++)
+            {
+                Byte[] expectedData = CreateRandomData(dataSize);
+                Byte[] actualData = new Byte[expectedData.Length];
+                Int32 bytesReceived;
+                Boolean result = client.Write(expectedData);
+                Assert.IsTrue(result, "Checking that client successfully write data");
+                result = client.Read(actualData, out bytesReceived);
+                Assert.IsTrue(result, "Checking that read operation was performed successfully");
+                Assert.AreEqual(expectedData.Length, bytesReceived, "Chechking that client received expected number of bytes");
+                for (Int32 counter = 0; counter < expectedData.Length; counter++)
+                    Assert.AreEqual(expectedData[counter], actualData[counter], String.Format("Checking that arrays bytes are equals at index {0}, at exchange cycle {1}", counter,  repetitionCounter + 1));
+            }
         }
 
         private const String LocalIpAddress = "127.0.0.1";

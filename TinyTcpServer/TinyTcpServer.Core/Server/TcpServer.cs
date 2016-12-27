@@ -69,12 +69,8 @@ namespace TinyTcpServer.Core.Server
 
         public void SendData(TcpClientHandlerInfo clientHandlerInfo, Byte[] data)
         {
-            //throw new NotImplementedException();
             IList<TcpClientContext> selectedClients = _tcpClients.Where(item =>
             {
-                //Boolean ipCheck = String.Equals(((IPEndPoint) item.Client.Client.RemoteEndPoint).Address.ToString(), clientHandlerInfo.IpAddress);
-                //Boolean portCheck = ((IPEndPoint) item.Client.Client.RemoteEndPoint).Port == clientHandlerInfo.Port;
-                //return ipCheck && portCheck;
                 return TcpClientHandlerSelector.Select(clientHandlerInfo, item);
             }).ToList();
 
@@ -122,11 +118,8 @@ namespace TinyTcpServer.Core.Server
         {
             while (!_interruptRequested)
             {
-                //Console.WriteLine("ROLLING...");
                 // 1. waiting for connection ...
                 Task.Factory.StartNew(ClientConnectProcessing).Wait();
-                //if(_tcpClients.Count > 0)
-                    //Console.WriteLine("We have clients: " + _tcpClients.Count);
                 // 2. handle clients ... (read + write)
                 for (Int32 clientCounter = 0; clientCounter < _tcpClients.Count; clientCounter++)
                 {
@@ -191,7 +184,6 @@ namespace TinyTcpServer.Core.Server
 
         private void ProcessClientReceiveSend(TcpClientContext client)
         {
-            Console.WriteLine("ProcessClientReceiveSend called");
             Byte[] receivedData = ReceiveImpl(client);
             if (receivedData != null)
             {
@@ -199,13 +191,8 @@ namespace TinyTcpServer.Core.Server
                 _clientsHandlers.Where(item =>
                 {
                     //todo: umv: add special selection for AnyPort and AnyIp
-                    //Boolean ipCheck= String.Equals(item.Item1.IpAddress, ((IPEndPoint) client.Client.Client.RemoteEndPoint).Address.ToString());
-                    //Boolean portCheck = item.Item1.Port == ((IPEndPoint) client.Client.Client.RemoteEndPoint).Port;
-                    //Boolean result = TcpClientHandlerSelector.Select(item.Item1, client);
-                        //ipCheck && portCheck;
                     return TcpClientHandlerSelector.Select(item.Item1, client);
                 }).ToList();
-                Console.WriteLine("selected handlers: " + linkedHandlers.Count);
                 foreach (Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler in linkedHandlers)
                 {
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
@@ -218,10 +205,7 @@ namespace TinyTcpServer.Core.Server
 
         private Byte[] ReceiveImpl(TcpClientContext client)
         {
-            Console.WriteLine("...receiving...");
             Byte[] buffer = new Byte[DefaultClientBufferSize];
-            
-            //Object synch = new Object();
             client.BytesRead = 0;
             
             try
@@ -229,25 +213,20 @@ namespace TinyTcpServer.Core.Server
                 lock(client.SynchObject)
                 { 
                     NetworkStream netStream = client.Client.GetStream();
-                    netStream.ReadTimeout = 1500;
+                    netStream.ReadTimeout = 100;//1500;
                     while (netStream.DataAvailable || client.Client.Client.Poll(20000, SelectMode.SelectRead))
                     {
                         client.ReadDataEvent.Reset();
-                        //Console.WriteLine("thread id: " + Thread.CurrentThread.ManagedThreadId);
                         if (buffer.Length < client.BytesRead + DefaultChunkSize)
                             Array.Resize(ref buffer, buffer.Length + 4 * DefaultChunkSize);
                         Int32 offset = client.BytesRead;
                         Int32 size = DefaultChunkSize;
-                        //Console.WriteLine("read op, offset " + offset + " size " + size);
-                        //lock (synch)
                         netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
-                        //Thread.Sleep(10);
                     }
                     Array.Resize(ref buffer, client.BytesRead);
+                    Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
                 }
-                
-                Console.WriteLine("bytes read: " + client.BytesRead);
             }
             catch (Exception)
             {
@@ -266,22 +245,18 @@ namespace TinyTcpServer.Core.Server
                 throw new ApplicationException("state can't be null");
             client.BytesRead +=client.Client.GetStream().EndRead(state);
             client.ReadDataEvent.Set();
-            //Console.WriteLine("bytes read in read callback: " + _bytesRead);
-            //Console.WriteLine("thread id: " + Thread.CurrentThread.ManagedThreadId);
         }
 
         private void SendImpl(TcpClientContext client, Byte[] data)
         {
             try
             {
-                //Object synch = new Object();
                 lock (client.SynchObject)
                 {
                     client.WriteDataEvent.Reset();
-
                     NetworkStream netStream = client.Client.GetStream();
                     //netStream.Flush();
-                    netStream.WriteTimeout = 2500;
+                    netStream.WriteTimeout = 200;//2500;
                     //lock(synch)
                     netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
                     client.WriteDataEvent.Wait(_writeTimeout);

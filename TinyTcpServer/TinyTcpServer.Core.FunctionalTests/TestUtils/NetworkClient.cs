@@ -243,8 +243,8 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
         private readonly ManualResetEventSlim _waitCompleted = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim _readCompleted = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim _writeCompleted = new ManualResetEventSlim(false);
+        private readonly Object _synch = new Object();
         private Int32 _bytesRead;
         private Int32 _bytesSend;
-        private Object _synch = new Object();
     }
 }
