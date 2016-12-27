@@ -27,10 +27,12 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1024, 128)]
         [TestCase(1024, 666)]
         [TestCase(1024, 1024)]
-        //TestCase(32768, 20)]
-        //[TestCase(40000, 10)]
-        //[TestCase(131072, 8)]
-        //[TestCase(1048576, 2)]
+        [TestCase(8192, 32)]
+        [TestCase(16384, 32)]
+        [TestCase(32768, 20)]
+        [TestCase(40000, 10)]
+        [TestCase(131072, 8)]
+        [TestCase(1048576, 2)]
         public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition)
         {
             //const Int32 clientPort = 4567;
@@ -42,11 +44,10 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             Assert.IsTrue(result, "Checking that server was successfully opened");
             client.Open();
             Byte[] expectedData = CreateRandomData(dataSize);
-
+            Byte[] actualData = new Byte[expectedData.Length];
+            Int32 bytesReceived ;
             result = client.Write(expectedData);
             Assert.IsTrue(result, "Checking that client successfully write data");
-            Byte[] actualData = new Byte[expectedData.Length];
-            Int32 bytesReceived = 0;
             result = client.Read(actualData, out bytesReceived);
             client.Close();
             _server.Stop(true);

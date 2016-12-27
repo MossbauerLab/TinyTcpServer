@@ -192,7 +192,10 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
                     _writeCompleted.Reset();
                     Int32 offset = _bytesSend;
                     Int32 size = Math.Min(MaximumPacketSize, data.Length - _bytesSend);
-                    _clientSocket.BeginSend(data, offset, size, SocketFlags.None, WriteAsyncCallback, _clientSocket);
+                    lock (_synch)
+                    {
+                        _clientSocket.BeginSend(data, offset, size, SocketFlags.None, WriteAsyncCallback,  _clientSocket);
+                    }
                     _writeCompleted.Wait(_writeTimeout);
                 }
                 return _bytesSend == data.Length;

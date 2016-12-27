@@ -201,9 +201,9 @@ namespace TinyTcpServer.Core.Server
                     //todo: umv: add special selection for AnyPort and AnyIp
                     //Boolean ipCheck= String.Equals(item.Item1.IpAddress, ((IPEndPoint) client.Client.Client.RemoteEndPoint).Address.ToString());
                     //Boolean portCheck = item.Item1.Port == ((IPEndPoint) client.Client.Client.RemoteEndPoint).Port;
-                    Boolean result = TcpClientHandlerSelector.Select(item.Item1, client);
+                    //Boolean result = TcpClientHandlerSelector.Select(item.Item1, client);
                         //ipCheck && portCheck;
-                    return result;
+                    return TcpClientHandlerSelector.Select(item.Item1, client);
                 }).ToList();
                 Console.WriteLine("selected handlers: " + linkedHandlers.Count);
                 foreach (Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler in linkedHandlers)
@@ -220,27 +220,33 @@ namespace TinyTcpServer.Core.Server
         {
             Console.WriteLine("...receiving...");
             Byte[] buffer = new Byte[DefaultClientBufferSize];
-            client.ReadDataEvent.Reset();
-            Object synch = new Object();
+            
+            //Object synch = new Object();
             client.BytesRead = 0;
             
             try
             {
-                NetworkStream netStream = client.Client.GetStream();
-                netStream.ReadTimeout = 100;
-                while (netStream.DataAvailable || client.Client.Client.Poll(10000, SelectMode.SelectRead))
-                {
-                    //Console.WriteLine("thread id: " + Thread.CurrentThread.ManagedThreadId);
-                    if (buffer.Length < client.BytesRead + DefaultChunkSize)
-                        Array.Resize(ref buffer, buffer.Length + 10*DefaultChunkSize);
-                    Int32 offset = client.BytesRead;
-                    Int32 size = DefaultChunkSize;
-                    //Console.WriteLine("read op, offset " + offset + " size " + size);
-                    lock (synch)
+                lock(client.SynchObject)
+                { 
+                    NetworkStream netStream = client.Client.GetStream();
+                    netStream.ReadTimeout = 1500;
+                    while (netStream.DataAvailable || client.Client.Client.Poll(20000, SelectMode.SelectRead))
+                    {
+                        client.ReadDataEvent.Reset();
+                        //Console.WriteLine("thread id: " + Thread.CurrentThread.ManagedThreadId);
+                        if (buffer.Length < client.BytesRead + DefaultChunkSize)
+                            Array.Resize(ref buffer, buffer.Length + 4 * DefaultChunkSize);
+                        Int32 offset = client.BytesRead;
+                        Int32 size = DefaultChunkSize;
+                        //Console.WriteLine("read op, offset " + offset + " size " + size);
+                        //lock (synch)
                         netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
-                    client.ReadDataEvent.Wait(_readTimeout);
+                        client.ReadDataEvent.Wait(_readTimeout);
+                        //Thread.Sleep(10);
+                    }
+                    Array.Resize(ref buffer, client.BytesRead);
                 }
-                Array.Resize(ref buffer, client.BytesRead);
+                
                 Console.WriteLine("bytes read: " + client.BytesRead);
             }
             catch (Exception)
@@ -268,10 +274,18 @@ namespace TinyTcpServer.Core.Server
         {
             try
             {
-                client.WriteDataEvent.Reset();
-                NetworkStream netStream = client.Client.GetStream();
-                netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
-                client.WriteDataEvent.Wait(_writeTimeout);
+                //Object synch = new Object();
+                lock (client.SynchObject)
+                {
+                    client.WriteDataEvent.Reset();
+
+                    NetworkStream netStream = client.Client.GetStream();
+                    //netStream.Flush();
+                    netStream.WriteTimeout = 2500;
+                    //lock(synch)
+                    netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
+                    client.WriteDataEvent.Wait(_writeTimeout);
+                }
             }
             catch (Exception)
             {

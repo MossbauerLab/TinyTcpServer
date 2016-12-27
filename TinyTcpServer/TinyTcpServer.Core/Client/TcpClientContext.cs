@@ -16,8 +16,10 @@ namespace TinyTcpServer.Core.Client
             ReadDataEvent = new ManualResetEventSlim();
             WriteDataEvent = new ManualResetEventSlim();
             IsProcessing = false;
+            SynchObject = new Object();
         }
 
+        public Object SynchObject { get; set; }
         public Boolean IsProcessing { get; set; }
         public Int32 BytesRead { get; set; }
         public TcpClient Client { get; private set; }
