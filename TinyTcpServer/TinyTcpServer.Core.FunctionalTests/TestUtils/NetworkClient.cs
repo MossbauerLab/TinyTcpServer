@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace TinyTcpServer.Core.FunctionalTests.TestUtils
 {
-    internal class NetworkClient
+    internal class NetworkClient : IDisposable
     {
         public NetworkClient(EndPoint endPoint, Boolean isAsynchronous, Int32 connectionWaitTimeout = DefaultConnectionWaitTimeout,
                       Int32 readTimeout = DefaultReadTimeout, Int32 writeTimeout = DefaultWriteTimeout)
@@ -97,7 +97,8 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             _waitCompleted.Dispose();
             _readCompleted.Dispose();
             _writeCompleted.Dispose();
-            _clientSocket.Dispose();
+            if (_clientSocket != null)
+                _clientSocket.Dispose();
         }
 
         private Boolean OpenAsync()
@@ -149,17 +150,18 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
                 _bytesRead = 0;
                 do
                 {
-                    _readCompleted.Reset();
-                    Int32 offset = _bytesRead;
-                    Int32 size = Math.Min(MaximumPacketSize, _clientSocket.Available);
                     lock (_synch)
                     {
+                        _readCompleted.Reset();
+                        Int32 offset = _bytesRead;
+                        Int32 size = Math.Min(MaximumPacketSize, _clientSocket.Available);
                         _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
+                        _readCompleted.Wait(_readTimeout);
                     }
-                    _readCompleted.Wait(_readTimeout);
                 } 
-                while (_clientSocket.Available > 0);
+                while (_clientSocket.Available > 0 || _clientSocket.Poll(100000, SelectMode.SelectRead));
                 bytesRead = _bytesRead;
+                Console.WriteLine("[CLIENT, ReadAsync] client read done");
                 return true;
             }
             catch (Exception)
@@ -194,7 +196,7 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
                     Int32 size = Math.Min(MaximumPacketSize, data.Length - _bytesSend);
                     lock (_synch)
                     {
-                        _clientSocket.BeginSend(data, offset, size, SocketFlags.None, WriteAsyncCallback,  _clientSocket);
+                        _clientSocket.BeginSend(data, offset, size, SocketFlags.Partial, WriteAsyncCallback,  _clientSocket);
                     }
                     _writeCompleted.Wait(_writeTimeout);
                 }
@@ -227,8 +229,8 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
 
         private const Int32 MaximumPacketSize = 1536;
         private const Int32 DefaultConnectionWaitTimeout = 4000;
-        private const Int32 DefaultReadTimeout = 1000;
-        private const Int32 DefaultWriteTimeout = 1000;
+        private const Int32 DefaultReadTimeout = 2000;
+        private const Int32 DefaultWriteTimeout = 2000;
         private const AddressFamily DeviceAddressFamily = AddressFamily.InterNetwork;
         private const SocketType DeviceSocketType = SocketType.Stream;
         private const ProtocolType DeviceProtocolType = ProtocolType.Tcp;
