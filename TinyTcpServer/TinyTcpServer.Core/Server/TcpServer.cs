@@ -217,10 +217,10 @@ namespace TinyTcpServer.Core.Server
             
             try
             {
-                lock(client.SynchObject)
-                { 
+                //lock(client.SynchObject)
+                //{ 
                     NetworkStream netStream = client.Client.GetStream();
-                    netStream.ReadTimeout = 10;//100;//1500;
+                    netStream.ReadTimeout = 100;//100;//1500;
                     while (netStream.DataAvailable || client.Client.Client.Poll(20000, SelectMode.SelectRead))
                     {
                         client.ReadDataEvent.Reset();
@@ -228,12 +228,13 @@ namespace TinyTcpServer.Core.Server
                             Array.Resize(ref buffer, buffer.Length + 10 * DefaultChunkSize);
                         Int32 offset = client.BytesRead;
                         Int32 size = DefaultChunkSize;
-                        netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
+                        lock (client.SynchObject)
+                            netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
                     }
                     Array.Resize(ref buffer, client.BytesRead);
                     Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
-                }
+                //}
             }
             catch (Exception)
             {
@@ -258,16 +259,17 @@ namespace TinyTcpServer.Core.Server
         {
             try
             {
-                lock (client.SynchObject)
-                {
+                //lock (client.SynchObject)
+                //{
                     client.WriteDataEvent.Reset();
                     NetworkStream netStream = client.Client.GetStream();
                     //netStream.Flush();
-                    netStream.WriteTimeout = 10;//2500;
+                    netStream.WriteTimeout = 100;//2500;
                     //lock(synch)
-                    netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
+                    lock (client.SynchObject)
+                        netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
                     client.WriteDataEvent.Wait(_writeTimeout);
-                }
+                //}
             }
             catch (Exception)
             {
@@ -291,14 +293,14 @@ namespace TinyTcpServer.Core.Server
         private const Int32 DefaultClientBufferSize = 16384;
         private const Int32 DefaultChunkSize = 1536;
         private const Int32 DefaultClientConnectAttempts = 5;
-        private const Int32 DefaultClientConnectTimeout = 200;
-        private const Int32 DefaultReadTimrout = 1000;
+        private const Int32 DefaultClientConnectTimeout = 200;//200;
+        private const Int32 DefaultReadTimeout = 1000;
         private const Int32 DefaultWriteTimeout = 1000;
 
         // timeouts
         //todo: umv: make adjustable
         private Int32 _clientConnectTimeout = DefaultClientConnectTimeout;
-        private Int32 _readTimeout = DefaultReadTimrout;
+        private Int32 _readTimeout = DefaultReadTimeout;
         private Int32 _writeTimeout = DefaultWriteTimeout;
         // other parameters
         private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;

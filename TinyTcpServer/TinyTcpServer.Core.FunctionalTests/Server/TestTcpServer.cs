@@ -38,26 +38,35 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             _server.Stop(true);
         }
 
-        [TestCase (1024, 1)]
-        [TestCase(1024, 2)]
-        [TestCase(1024, 16)]
-        [TestCase(1024, 128)]
-        [TestCase(1024, 666)]
-        //[TestCase(1024, 1024)] // too long
-        [TestCase(8192, 32)]
-        [TestCase(16384, 32)]
-        [TestCase(32768, 20)]
-        [TestCase(40000, 10)]
-        [TestCase(131072, 8)]
-        [TestCase(1048576, 2)]
-        public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition)
+        [TestCase (1024, 1, true)]
+        [TestCase(1024, 2, true)]
+        [TestCase(1024, 16, true)]
+        [TestCase(1024, 128, true)]
+        //[TestCase(1024, 666, true)]
+        //[TestCase(1024, 1024, true)] // too long
+        [TestCase(8192, 32, true)]
+        [TestCase(16384, 32, true)]
+        [TestCase(32768, 20, true)]
+        [TestCase(40000, 10, true)]
+        [TestCase(131072, 8, true)]
+        [TestCase(1048576, 2, true)]
+        [TestCase(1024, 1, false)]
+        [TestCase(1024, 2, false)]
+        [TestCase(1024, 16, false)]
+        [TestCase(1024, 128, false)]
+        //[TestCase(1024, 1024, false)] // too long
+        [TestCase(8192, 32, false)]
+        [TestCase(16384, 32, false)]
+        [TestCase(32768, 20, false)]
+        [TestCase(40000, 10, false)]
+        [TestCase(131072, 8, false)]
+        [TestCase(1048576, 2, false)]
+        public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
             TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
             _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);
             using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                            //false,  // synchronous
-                                                            true,     // asynchronous
-                                                            1000, 4000, 4000))
+                                                            isClientAsync, 1000, 4000, 4000))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);
