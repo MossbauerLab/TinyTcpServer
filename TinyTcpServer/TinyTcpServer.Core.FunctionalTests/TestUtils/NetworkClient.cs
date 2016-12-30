@@ -186,8 +186,8 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             //todo: umv make more complicated error handling
             try
             {
-                if (!State)
-                    return false;
+                //if (!State)
+                    //return false;
                 _bytesSend = 0;
                 while (_bytesSend < data.Length)
                 {

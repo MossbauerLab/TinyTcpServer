@@ -78,6 +78,10 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             _server.Stop(true);
         }
 
+        public void TestServerExchangeWithOneClientWithTimeSpacingBetweenExchange()
+        {
+        }
+
         private Byte[] CreateRandomData(Int32 size)
         {
             Byte[] randomData = new Byte[size];
@@ -105,6 +109,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         }
 
         private const String LocalIpAddress = "127.0.0.1";
+            //"127.0.0.1";
         private const Int32 ServerPort1 = 9999;
         private const Int32 ServerPort2 = 12345;
         //private const String ClientIpAddress = "127.0.0.1";
