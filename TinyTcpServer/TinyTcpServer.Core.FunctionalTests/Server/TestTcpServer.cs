@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using TinyTcpServer.Core.FunctionalTests.TestUtils;
 using TinyTcpServer.Core.Handlers;
@@ -42,8 +44,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1024, 2, true)]
         [TestCase(1024, 16, true)]
         [TestCase(1024, 128, true)]
-        //[TestCase(1024, 666, true)]
-        //[TestCase(1024, 1024, true)] // too long
+        //[TestCase(1024, 666, true)] // too long
         [TestCase(8192, 32, true)]
         [TestCase(16384, 32, true)]
         [TestCase(32768, 20, true)]
@@ -66,8 +67,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
             _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);
             using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                            isClientAsync, 1000, 
-                                                            400, 400))
+                                                            isClientAsync, 1000, 400, 400))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);
@@ -79,8 +79,33 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             _server.Stop(true);
         }
 
-        public void TestServerExchangeWithOneClientWithTimeSpacingBetweenExchange()
+        [TestCase(1024, 16, 30, 50, true)]
+        [TestCase(1024, 128, 10, 40, true)]
+        [TestCase(8192, 32, 70, 100, true)]
+        [TestCase(16384, 32, 40, 100, true)]
+        [TestCase(32768, 20, 40, 100, true)]
+        [TestCase(40000, 10, 100, 150, true)]
+        [TestCase(1024, 16, 30, 50, false)]
+        [TestCase(1024, 128, 10, 40, false)]
+        [TestCase(8192, 32, 70, 100, false)]
+        [TestCase(16384, 32, 40, 100, false)]
+        [TestCase(32768, 20, 40, 100, false)]
+        [TestCase(40000, 10, 100, 150, false)]
+        public void TestServerExchangeWithPausesAndOneClient(Int32 dataSize, Int32 repetition, Int32 minPauseTime, Int32 maxPauseTime, Boolean isClientAsync)
         {
+            TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
+            _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);
+            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
+                                                            isClientAsync, 1000, 400, 400))
+            {
+
+                Boolean result = _server.Start(LocalIpAddress, ServerPort1);
+                Assert.IsTrue(result, "Checking that server was successfully opened");
+                client.Open();
+                ExchangeWithRandomDataAndCheck(client, dataSize, repetition, minPauseTime, maxPauseTime);
+                client.Close();
+            }
+            _server.Stop(true);
         }
 
         private Byte[] CreateRandomData(Int32 size)
@@ -92,8 +117,9 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             return randomData;
         }
 
-        private void ExchangeWithRandomDataAndCheck(NetworkClient client, Int32 dataSize, Int32 repetition)
+        private void ExchangeWithRandomDataAndCheck(NetworkClient client, Int32 dataSize, Int32 repetition, Int32 pauseMin = 0, Int32 pauseMax = 0)
         {
+            Random pauseRandomGenerator = new Random();
             for (Int32 repetitionCounter = 0; repetitionCounter < repetition; repetitionCounter++)
             {
                 Byte[] expectedData = CreateRandomData(dataSize);
@@ -106,14 +132,27 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
                 Assert.AreEqual(expectedData.Length, bytesReceived, String.Format("Chechking that client received expected number of bytes at exchange cycle {0}", repetitionCounter + 1));
                 for (Int32 counter = 0; counter < expectedData.Length; counter++)
                     Assert.AreEqual(expectedData[counter], actualData[counter], String.Format("Checking that arrays bytes are equals at index {0}, at exchange cycle {1}", counter,  repetitionCounter + 1));
+                if (pauseMin > 0 && pauseMax > 0)
+                {
+                    Int32 pause = pauseRandomGenerator.Next(pauseMin, pauseMax);
+                    ManualResetEventSlim delayEvent = new ManualResetEventSlim(false);
+                    Timer timer = new Timer(arg =>
+                    {
+                        ManualResetEventSlim signal = (arg as ManualResetEventSlim); 
+                        if(signal == null)
+                            throw new ArgumentNullException("arg");
+                        signal.Set();
+                    }, delayEvent, pause, -1);
+                    delayEvent.Wait();
+                    timer.Dispose();
+                    delayEvent.Dispose();
+                }
             }
         }
 
         private const String LocalIpAddress = "127.0.0.1";
-            //"127.0.0.1";
         private const Int32 ServerPort1 = 9999;
         private const Int32 ServerPort2 = 12345;
-        //private const String ClientIpAddress = "127.0.0.1";
 
         private ITcpServer _server;
     }
