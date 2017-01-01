@@ -2,10 +2,12 @@
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using NUnit.Framework;
 using TinyTcpServer.Core.FunctionalTests.TestUtils;
 using TinyTcpServer.Core.Handlers;
 using TinyTcpServer.Core.Server;
+using Timer = System.Threading.Timer;
 
 namespace TinyTcpServer.Core.FunctionalTests.Server
 {
@@ -105,6 +107,49 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
                 ExchangeWithRandomDataAndCheck(client, dataSize, repetition, minPauseTime, maxPauseTime);
                 client.Close();
             }
+            _server.Stop(true);
+        }
+
+        [TestCase(2, 1024, 16, true)]
+        [TestCase(64, 1024, 1, true)]
+        [TestCase(32, 1024, 16, true)]
+        [TestCase(16, 8192, 32, true)]
+        [TestCase(16, 16384, 32, true)]
+        [TestCase(8, 131072, 8, true)]
+        [TestCase(4, 1048576, 2, true)]
+        [TestCase(2, 1024, 16, false)]
+        [TestCase(64, 1024, 1, false)]
+        [TestCase(32, 1024, 16, false)]
+        [TestCase(16, 8192, 32, false)]
+        [TestCase(16, 16384, 32, false)]
+        [TestCase(8, 131072, 8, false)]
+        [TestCase(4, 1048576, 2, false)]
+        public void TestServerExchangeWithSeveralClients(Int32 numberOfClients, Int32 dataSize, Int32 repetition, Boolean isClientAsync)
+        {
+            TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
+            _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);
+            Boolean result = _server.Start(LocalIpAddress, ServerPort1);
+            Assert.IsTrue(result, "Checking that server was successfully opened");
+            Task[] clientTasks = new Task[numberOfClients];
+            for (Int32 clientCounter = 0; clientCounter < numberOfClients; clientCounter++)
+            {
+                Task clientTask = new Task(() =>
+                //Task.Factory.StartNew(()=>
+                {
+                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
+                                                                    isClientAsync, 1000, 1500, 1500))
+                    {
+                        client.Open();
+                        ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
+                        client.Close();
+                    }
+                });
+                clientTasks[clientCounter] = clientTask;
+                clientTask.Start();
+            }
+            Task.WaitAll(clientTasks, -1);
+            foreach (Task clientTask in clientTasks)
+                clientTask.Dispose();
             _server.Stop(true);
         }
 
