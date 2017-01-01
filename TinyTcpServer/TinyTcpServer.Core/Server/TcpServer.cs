@@ -325,7 +325,6 @@ namespace TinyTcpServer.Core.Server
         
         private readonly IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  _clientsHandlers = new List<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>();
         private readonly IList<TcpClientContext> _tcpClients = new List<TcpClientContext>(); 
-        private readonly Object _synch = new Object();
         private String _ipAddress;
         private UInt16 _port;
         private TcpListener _tcpListener;

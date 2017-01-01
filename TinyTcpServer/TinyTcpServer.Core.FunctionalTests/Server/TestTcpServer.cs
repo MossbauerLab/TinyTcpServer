@@ -66,7 +66,8 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
             _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);
             using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                            isClientAsync, 1000, 4000, 4000))
+                                                            isClientAsync, 1000, 
+                                                            400, 400))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);
