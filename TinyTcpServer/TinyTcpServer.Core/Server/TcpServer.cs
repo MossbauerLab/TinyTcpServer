@@ -11,7 +11,7 @@ using TinyTcpServer.Core.Handlers.Utils;
 
 namespace TinyTcpServer.Core.Server
 {
-    public class TcpServer : ITcpServer
+    public class TcpServer : ITcpServer, IDisposable
     {
         public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort)
         {
@@ -47,6 +47,11 @@ namespace TinyTcpServer.Core.Server
         {
             Stop(false);
             Start(_ipAddress, _port);
+        }
+
+        public void Dispose()
+        {
+            
         }
 
         public void AddHandler(TcpClientHandlerInfo clientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]> handler)
@@ -124,21 +129,25 @@ namespace TinyTcpServer.Core.Server
                 if (_tcpClients.Count == 0)
                     listenClients.Wait();*/
                 Task.Factory.StartNew(ClientConnectProcessing, new CancellationToken(_interruptRequested)).Wait();
+                //if(_connectTask.Status !=TaskStatus.Running)
+                    //_connectTask.Start();
                 // 2. handle clients ... (read + write)
-                if(_tcpClients.Count == 0)
-                    Console.WriteLine("[Server,  StartClientProcessing] NO clients");
-                lock (_tcpClients)
-                {
-                    for (Int32 clientCounter = 0; clientCounter < _tcpClients.Count; clientCounter++)
+                if(_tcpClients.Count != 0)
+                    lock (_tcpClients)
                     {
-                        if (CheckClientConnected(_tcpClients[clientCounter].Client) && !_tcpClients[clientCounter].IsProcessing)
+                        for (Int32 clientCounter = 0; clientCounter < _tcpClients.Count; clientCounter++)
                         {
-                            _tcpClients[clientCounter].IsProcessing = true;
-                            TcpClientContext client = _tcpClients[clientCounter];
-                            Task.Factory.StartNew(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested)).Wait();
+                            if (CheckClientConnected(_tcpClients[clientCounter].Client) &&
+                                !_tcpClients[clientCounter].IsProcessing)
+                            {
+                                _tcpClients[clientCounter].IsProcessing = true;
+                                TcpClientContext client = _tcpClients[clientCounter];
+                                Task clientProcessingTask = new Task(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
+                                clientProcessingTask.Start();
+                                //Task.Factory.StartNew(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
+                            }
                         }
                     }
-                }
                 // 3. check "disconnected" clients ...
                 IList<TcpClientContext> disoonnectedClients = _tcpClients.Where(client => !CheckClientConnected(client.Client)).ToList();
                 lock (_tcpClients)
@@ -155,8 +164,7 @@ namespace TinyTcpServer.Core.Server
             for (Int32 attempt = 0; attempt < _clientConnectAttempts; attempt++)
             {
                 _clientConnectEvent.Reset();
-                //lock (_synch)
-                    _tcpListener.BeginAcceptTcpClient(ConnectAsyncCallback, _tcpListener);
+                _tcpListener.BeginAcceptTcpClient(ConnectAsyncCallback, _tcpListener);
                 _clientConnectEvent.Wait(_clientConnectTimeout);
             }
         }
@@ -166,7 +174,6 @@ namespace TinyTcpServer.Core.Server
             try
             {
                 TcpClient client = _tcpListener.EndAcceptTcpClient(state);
-                //client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 if (client.Connected)
                 {
                     lock(_tcpClients)
@@ -188,14 +195,7 @@ namespace TinyTcpServer.Core.Server
                 return false;
             try
             {
-                /*if (client.Client.Poll(0, SelectMode.SelectWrite) && !client.Client.Poll(0, SelectMode.SelectError))
-                {
-                    Byte[] buffer = new Byte[1];
-                    return client.Client.Receive(buffer, SocketFlags.Peek) != 0;
-                }*/
                 return !(client.Client.Poll(0, SelectMode.SelectRead) && client.Client.Available == 0);
-                //client.Client.Poll(0, SelectMode.SelectWrite) && !client.Client.Poll(0, SelectMode.SelectError);
-                //false;
             }
             catch (Exception)
             {
@@ -229,28 +229,25 @@ namespace TinyTcpServer.Core.Server
         {
             Byte[] buffer = new Byte[DefaultClientBufferSize];
             client.BytesRead = 0;
-            
+
             try
             {
-                //lock(client.SynchObject)
-                //{ 
                 Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
-                    NetworkStream netStream = client.Client.GetStream();
-                    netStream.ReadTimeout = 100;//100;//1500;
-                    while (netStream.DataAvailable || client.Client.Client.Poll(20000, SelectMode.SelectRead))
-                    {
-                        client.ReadDataEvent.Reset();
-                        if (buffer.Length < client.BytesRead + DefaultChunkSize)
-                            Array.Resize(ref buffer, buffer.Length + 10 * DefaultChunkSize);
-                        Int32 offset = client.BytesRead;
-                        Int32 size = DefaultChunkSize;
-                        lock (client.SynchObject)
-                            netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
-                        client.ReadDataEvent.Wait(_readTimeout);
-                    }
-                    Array.Resize(ref buffer, client.BytesRead);
-                    Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
-                //}
+                NetworkStream netStream = client.Client.GetStream();
+                netStream.ReadTimeout = 100;
+                while (netStream.DataAvailable || client.Client.Client.Poll(20000, SelectMode.SelectRead))
+                {
+                    client.ReadDataEvent.Reset();
+                    if (buffer.Length < client.BytesRead + DefaultChunkSize)
+                        Array.Resize(ref buffer, buffer.Length + 10*DefaultChunkSize);
+                    Int32 offset = client.BytesRead;
+                    Int32 size = DefaultChunkSize;
+                    lock (client.SynchObject)
+                        netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
+                    client.ReadDataEvent.Wait(_readTimeout);
+                }
+                Array.Resize(ref buffer, client.BytesRead);
+                Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
             }
             catch (Exception)
             {
@@ -275,17 +272,12 @@ namespace TinyTcpServer.Core.Server
         {
             try
             {
-                //lock (client.SynchObject)
-                //{
-                    client.WriteDataEvent.Reset();
-                    NetworkStream netStream = client.Client.GetStream();
-                    //netStream.Flush();
-                    netStream.WriteTimeout = 100;//2500;
-                    //lock(synch)
-                    lock (client.SynchObject)
-                        netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
-                    client.WriteDataEvent.Wait(_writeTimeout);
-                //}
+                client.WriteDataEvent.Reset();
+                NetworkStream netStream = client.Client.GetStream();
+                netStream.WriteTimeout = 100;
+                lock (client.SynchObject)
+                    netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
+                client.WriteDataEvent.Wait(_writeTimeout);
             }
             catch (Exception)
             {
@@ -309,9 +301,10 @@ namespace TinyTcpServer.Core.Server
         private const Int32 DefaultClientBufferSize = 16384;
         private const Int32 DefaultChunkSize = 1536;
         private const Int32 DefaultClientConnectAttempts = 5;
-        private const Int32 DefaultClientConnectTimeout = 50;//200;
-        private const Int32 DefaultReadTimeout = 200;
-        private const Int32 DefaultWriteTimeout = 200;
+        private const Int32 DefaultClientConnectTimeout = 50;
+        private const Int32 DefaultReadTimeout = 100;
+        private const Int32 DefaultWriteTimeout = 100;
+        private const Int32 DefaultParallelClientProcessingTasks = 8;
 
         // timeouts
         //todo: umv: make adjustable
@@ -320,7 +313,9 @@ namespace TinyTcpServer.Core.Server
         private Int32 _writeTimeout = DefaultWriteTimeout;
         // other parameters
         private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;
+        private Int32 _parallelClientProcessingTasks = DefaultParallelClientProcessingTasks;
 
+        // threading things
         private readonly ManualResetEventSlim _clientConnectEvent = new ManualResetEventSlim();
         
         private readonly IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  _clientsHandlers = new List<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>();
