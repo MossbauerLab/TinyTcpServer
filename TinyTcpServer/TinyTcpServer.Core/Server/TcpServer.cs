@@ -296,7 +296,7 @@ namespace TinyTcpServer.Core.Server
                     NetworkStream netStream = client.Client.GetStream();
                     Boolean result = netStream.DataAvailable;// || client.Client.Client.Poll(1000, SelectMode.SelectRead);
                     if (!result)
-                        client.Client.Client.Poll(1000, SelectMode.SelectRead);
+                        client.Client.Client.Poll(10000, SelectMode.SelectRead);
                     result = netStream.DataAvailable;
                     if (!result)
                     {
@@ -316,7 +316,7 @@ namespace TinyTcpServer.Core.Server
                         
                         result = netStream.DataAvailable;// || client.Client.Client.Poll(1000, SelectMode.SelectRead);
                         if(!result)
-                            client.Client.Client.Poll(1000, SelectMode.SelectRead);
+                            client.Client.Client.Poll(10000, SelectMode.SelectRead);
                         result = netStream.DataAvailable;
                     }
                 }
@@ -375,9 +375,9 @@ namespace TinyTcpServer.Core.Server
         private const Int32 DefaultChunkSize = 1536;
         private const Int32 DefaultClientConnectAttempts = 5;
         private const Int32 DefaultClientConnectTimeout = 200;
-        private const Int32 DefaultReadTimeout = 500;
+        private const Int32 DefaultReadTimeout =300;
         private const Int32 DefaultWriteTimeout = 500;
-        private const Int32 DefaultReadAttempts = 50;
+        private const Int32 DefaultReadAttempts = 25;
         private const Int32 DefaultParallelClientProcessingTasks = 8;
 
         // timeouts
