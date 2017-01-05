@@ -296,7 +296,7 @@ namespace TinyTcpServer.Core.Server
                     NetworkStream netStream = client.Client.GetStream();
                     Boolean result = netStream.DataAvailable;// || client.Client.Client.Poll(1000, SelectMode.SelectRead);
                     if (!result)
-                        client.Client.Client.Poll(10000, SelectMode.SelectRead);
+                        client.Client.Client.Poll(1000, SelectMode.SelectRead);
                     result = netStream.DataAvailable;
                     if (!result)
                     {
@@ -316,7 +316,7 @@ namespace TinyTcpServer.Core.Server
                         
                         result = netStream.DataAvailable;// || client.Client.Client.Poll(1000, SelectMode.SelectRead);
                         if(!result)
-                            client.Client.Client.Poll(10000, SelectMode.SelectRead);
+                            client.Client.Client.Poll(1000, SelectMode.SelectRead);
                         result = netStream.DataAvailable;
                     }
                 }
