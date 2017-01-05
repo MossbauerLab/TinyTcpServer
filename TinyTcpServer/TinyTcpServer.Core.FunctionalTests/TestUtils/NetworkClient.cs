@@ -184,10 +184,11 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
         private Boolean WriteAsync(Byte[] data)
         {
             //todo: umv make more complicated error handling
+            Console.WriteLine("[Client, WriteAsync] write started");
             try
             {
-                //if (!State)
-                    //return false;
+                if (!State)
+                    return false;
                 _bytesSend = 0;
                 while (_bytesSend < data.Length)
                 {
@@ -198,12 +199,16 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
                     {
                         _clientSocket.BeginSend(data, offset, size, SocketFlags.Partial, WriteAsyncCallback,  _clientSocket);
                     }
+                    //lock (_synch)
+                    //_clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
                     _writeCompleted.Wait(_writeTimeout);
                 }
+                Console.WriteLine("[Client, WriteAsync] write done, bytes written: " + _bytesSend);
                 return _bytesSend == data.Length;
             }
             catch (Exception)
             {
+                Console.WriteLine("[Client, WriteAsync] something goes wrong");
                 return false;
             }
         }

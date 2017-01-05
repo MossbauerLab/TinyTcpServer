@@ -137,7 +137,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
                 //Task.Factory.StartNew(()=>
                 {
                     using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                                    isClientAsync, 1000, 2500, 2500))
+                                                                    isClientAsync, 1000, 500, 500))
                     {
                         client.Open();
                         ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
