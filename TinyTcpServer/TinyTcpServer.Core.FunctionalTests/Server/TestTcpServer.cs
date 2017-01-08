@@ -66,7 +66,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
             using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                            isClientAsync, 2000, 200, 800))
+                                                            isClientAsync, 2000, 200, 200))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);

@@ -67,12 +67,12 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             {
                 if (_isAsynchronous)
                     return ReadAsync(data, out bytesRead);
-                bytesRead = _clientSocket.Receive(data, SocketFlags.Partial);
-                return true;
+                return ReadSync(data, out bytesRead);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 bytesRead = 0;
+                Console.WriteLine("[CLIENT, Read] exception caught" + e.Message);
                 return false;
             }
         }
@@ -140,6 +140,28 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             else client.EndDisconnect(result);
                 //action(result);
             _waitCompleted.Set();
+        }
+
+        public Boolean ReadSync(Byte[] data, out Int32 bytesRead)
+        {
+            Boolean result = false;
+            Console.WriteLine("[CLIENT, ReadSync] client read started");
+            bytesRead = 0;
+            for (Int32 attemp = 0; attemp < 8; attemp++)
+            {
+                try
+                {
+                    bytesRead = _clientSocket.Receive(data, SocketFlags.None);
+                    if (bytesRead > 0)
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+                catch (Exception){ }
+            }
+            Console.WriteLine("[CLIENT, ReadSync] client read done");
+            return result;
         }
 
         private Boolean ReadAsync(Byte[] data, out Int32 bytesRead)
