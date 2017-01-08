@@ -4,13 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{358EC7BA-5091-482B-8894-AFE0E1A67288}</ProjectGuid>
+    <ProjectGuid>{5583337D-D872-4AB7-A4B5-A8309BB2F455}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TinyTcpServer.Api</RootNamespace>
-    <AssemblyName>TinyTcpServer.Api</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <RootNamespace>TinyTcpServer.Core.FunctionalTests</RootNamespace>
+    <AssemblyName>TinyTcpServer.Core.FunctionalTests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -39,12 +43,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\TcpClientInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Server\ITcpServer.cs" />
+    <Compile Include="Server\TestTcpServer.cs" />
+    <Compile Include="TestUtils\NetworkClient.cs" />
+    <Compile Include="TestUtils\EchoTcpClientHandler.cs" />
+    <Compile Include="TestUtils\TimeDelay.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Filtering\" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TinyTcpServer.Core\TinyTcpServer.Core.csproj">
+      <Project>{358ec7ba-5091-482b-8894-afe0e1a67288}</Project>
+      <Name>TinyTcpServer.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

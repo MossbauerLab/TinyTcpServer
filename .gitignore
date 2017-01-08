@@ -89,6 +89,10 @@ DocProject/Help/*.hhp
 DocProject/Help/Html2
 DocProject/Help/html
 
+# Nuget packages
+*/packages/*
+
+
 # Click-Once directory
 publish/
 
