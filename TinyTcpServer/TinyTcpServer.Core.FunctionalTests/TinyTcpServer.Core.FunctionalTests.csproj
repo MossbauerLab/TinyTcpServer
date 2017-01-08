@@ -47,6 +47,7 @@
     <Compile Include="Server\TestTcpServer.cs" />
     <Compile Include="TestUtils\NetworkClient.cs" />
     <Compile Include="TestUtils\EchoTcpClientHandler.cs" />
+    <Compile Include="TestUtils\TimeDelay.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

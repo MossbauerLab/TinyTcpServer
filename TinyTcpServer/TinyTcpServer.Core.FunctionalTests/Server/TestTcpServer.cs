@@ -2,12 +2,10 @@
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using NUnit.Framework;
 using TinyTcpServer.Core.FunctionalTests.TestUtils;
 using TinyTcpServer.Core.Handlers;
 using TinyTcpServer.Core.Server;
-using Timer = System.Threading.Timer;
 
 namespace TinyTcpServer.Core.FunctionalTests.Server
 {
@@ -21,6 +19,8 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
                 _server.Stop(true);
             _server = null;
             _server = new TcpServer();
+            _server.AddHandler(_clientHandlerInfo, EchoTcpClientHandler.Handle);
+            //EchoTcpClientHandler.Reset();
         }
 
         [TearDown]
@@ -66,10 +66,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1048576, 2, false)]
         public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
-            TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
-            _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);
-            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                            isClientAsync, 1000, 400, 400))
+            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000, 200, 200))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);
@@ -95,10 +92,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(40000, 10, 100, 150, false)]
         public void TestServerExchangeWithPausesAndOneClient(Int32 dataSize, Int32 repetition, Int32 minPauseTime, Int32 maxPauseTime, Boolean isClientAsync)
         {
-            TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
-            _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);
-            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                            isClientAsync, 1000, 400, 400))
+            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000, 200, 200))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);
@@ -126,20 +120,20 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(4, 1048576, 2, false)]
         public void TestServerExchangeWithSeveralClients(Int32 numberOfClients, Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
-            TcpClientHandlerInfo clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
-            _server.AddHandler(clientHandlerInfo, EchoTcpClientHandler.Handle);
             Boolean result = _server.Start(LocalIpAddress, ServerPort1);
             Assert.IsTrue(result, "Checking that server was successfully opened");
             Task[] clientTasks = new Task[numberOfClients];
             for (Int32 clientCounter = 0; clientCounter < numberOfClients; clientCounter++)
             {
                 Task clientTask = new Task(() =>
-                //Task.Factory.StartNew(()=>
                 {
-                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                                    isClientAsync, 1000, 1500, 1500))
+                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 500, 500, 1000))
                     {
                         client.Open();
+                        ManualResetEventSlim openWaitEvent = new ManualResetEventSlim();
+                        openWaitEvent.Wait(1000);
+                        openWaitEvent.Dispose();
+                        // wait 4 getting a chance for client to be ready for IO with server
                         ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
                         client.Close();
                     }
@@ -180,17 +174,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
                 if (pauseMin > 0 && pauseMax > 0)
                 {
                     Int32 pause = pauseRandomGenerator.Next(pauseMin, pauseMax);
-                    ManualResetEventSlim delayEvent = new ManualResetEventSlim(false);
-                    Timer timer = new Timer(arg =>
-                    {
-                        ManualResetEventSlim signal = (arg as ManualResetEventSlim); 
-                        if(signal == null)
-                            throw new ArgumentNullException("arg");
-                        signal.Set();
-                    }, delayEvent, pause, -1);
-                    delayEvent.Wait();
-                    timer.Dispose();
-                    delayEvent.Dispose();
+                    TimeDelay.Delay(pause);
                 }
             }
         }
@@ -200,5 +184,6 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         private const Int32 ServerPort2 = 12345;
 
         private ITcpServer _server;
+        private readonly TcpClientHandlerInfo _clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
     }
 }

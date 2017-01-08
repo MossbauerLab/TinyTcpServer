@@ -67,12 +67,12 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             {
                 if (_isAsynchronous)
                     return ReadAsync(data, out bytesRead);
-                bytesRead = _clientSocket.Receive(data, SocketFlags.Partial);
-                return true;
+                return ReadSync(data, out bytesRead);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 bytesRead = 0;
+                Console.WriteLine("[CLIENT, Read] exception caught" + e.Message);
                 return false;
             }
         }
@@ -142,24 +142,53 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             _waitCompleted.Set();
         }
 
+        public Boolean ReadSync(Byte[] data, out Int32 bytesRead)
+        {
+            Boolean result = false;
+            Console.WriteLine("[CLIENT, ReadSync] client read started");
+            bytesRead = 0;
+            for (Int32 attemp = 0; attemp < 8; attemp++)
+            {
+                try
+                {
+                    bytesRead = _clientSocket.Receive(data, SocketFlags.None);
+                    if (bytesRead > 0)
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+                catch (Exception){ }
+            }
+            Console.WriteLine("[CLIENT, ReadSync] client read done");
+            return result;
+        }
+
         private Boolean ReadAsync(Byte[] data, out Int32 bytesRead)
         {
             //todo: umv make more complicated error handling
             try
             {
+                Console.WriteLine("[CLIENT, ReadAsync] client read started");
                 _bytesRead = 0;
-                do
+
+                for (Int32 attempt = 0; attempt < 64; attempt++)
                 {
-                    lock (_synch)
+                    if (_clientSocket.Available == 0)
                     {
-                        _readCompleted.Reset();
-                        Int32 offset = _bytesRead;
-                        Int32 size = Math.Min(MaximumPacketSize, _clientSocket.Available);
-                        _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
-                        _readCompleted.Wait(_readTimeout);
+                        _clientSocket.Poll(50000, SelectMode.SelectRead);
+                        continue;
                     }
-                } 
-                while (_clientSocket.Available > 0 || _clientSocket.Poll(100000, SelectMode.SelectRead));
+                    attempt = 0;
+                    _readCompleted.Reset();
+                    Int32 offset = _bytesRead;
+                    Int32 size = _clientSocket.Available;
+                    lock (_synch)
+                        _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
+                    _readCompleted.Wait(10);
+                    if (_bytesRead == data.Length)
+                        break;
+                }
                 bytesRead = _bytesRead;
                 Console.WriteLine("[CLIENT, ReadAsync] client read done");
                 return true;
@@ -167,6 +196,7 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             catch (Exception)
             {
                 bytesRead = 0;
+                Console.WriteLine("[CLIENT, ReadAsync] something goes wrong");
                 return false;
             }
         }
@@ -184,10 +214,11 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
         private Boolean WriteAsync(Byte[] data)
         {
             //todo: umv make more complicated error handling
+            Console.WriteLine("[Client, WriteAsync] write started");
             try
             {
-                //if (!State)
-                    //return false;
+                if (!State)
+                    return false;
                 _bytesSend = 0;
                 while (_bytesSend < data.Length)
                 {
@@ -198,12 +229,16 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
                     {
                         _clientSocket.BeginSend(data, offset, size, SocketFlags.Partial, WriteAsyncCallback,  _clientSocket);
                     }
+                    //lock (_synch)
+                    //_clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
                     _writeCompleted.Wait(_writeTimeout);
                 }
+                Console.WriteLine("[Client, WriteAsync] write done, bytes written: " + _bytesSend);
                 return _bytesSend == data.Length;
             }
             catch (Exception)
             {
+                Console.WriteLine("[Client, WriteAsync] something goes wrong");
                 return false;
             }
         }

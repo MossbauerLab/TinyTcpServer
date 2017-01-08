@@ -11,11 +11,13 @@ using TinyTcpServer.Core.Handlers.Utils;
 
 namespace TinyTcpServer.Core.Server
 {
-    public class TcpServer : ITcpServer
+    public class TcpServer : ITcpServer, IDisposable
     {
         public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort)
         {
             AssignIpAddressAndPort(ipAddress, port);
+            _clientProcessingTasks = new Task[_parallelClientProcessingTasks];
+            _clientConnectingTask = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
         }
 
         public Boolean Start(String ipAddress, UInt16 port)
@@ -47,6 +49,15 @@ namespace TinyTcpServer.Core.Server
         {
             Stop(false);
             Start(_ipAddress, _port);
+        }
+
+        public void Dispose()
+        {
+            _clientConnectingTask.Dispose();
+            foreach (Task clientProcessingTask in _clientProcessingTasks)
+                if(clientProcessingTask != null)
+                    clientProcessingTask.Dispose();
+            _clientConnectEvent.Dispose();
         }
 
         public void AddHandler(TcpClientHandlerInfo clientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]> handler)
@@ -119,32 +130,58 @@ namespace TinyTcpServer.Core.Server
             while (!_interruptRequested)
             {
                 // 1. waiting for connection ...
-                /*Task listenClients = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
-                listenClients.Start();
-                if (_tcpClients.Count == 0)
-                    listenClients.Wait();*/
-                Task.Factory.StartNew(ClientConnectProcessing, new CancellationToken(_interruptRequested)).Wait();
-                // 2. handle clients ... (read + write)
-                if(_tcpClients.Count == 0)
-                    Console.WriteLine("[Server,  StartClientProcessing] NO clients");
-                lock (_tcpClients)
+                if (_clientConnectingTask.IsCompleted || 
+                    !(_clientConnectingTask.Status == TaskStatus.Running || _clientConnectingTask.Status == TaskStatus.WaitingToRun || 
+                      _clientConnectingTask.Status == TaskStatus.WaitingForActivation || _clientConnectingTask.Status == TaskStatus.WaitingForChildrenToComplete))
                 {
-                    for (Int32 clientCounter = 0; clientCounter < _tcpClients.Count; clientCounter++)
+                    _clientConnectingTask = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
+                    _clientConnectingTask.Start();
+                    if (_tcpClients.Count == 0)
+                        _clientConnectingTask.Wait();
+                }
+                
+                if(_tcpClients.Count != 0)
+                { 
+                    // 2. handle clients ... (read + write)
+                    lock (_tcpClients)
                     {
-                        if (CheckClientConnected(_tcpClients[clientCounter].Client) && !_tcpClients[clientCounter].IsProcessing)
+                        for (Int32 clientCounter = 0; clientCounter < _tcpClients.Count; clientCounter++)
                         {
-                            _tcpClients[clientCounter].IsProcessing = true;
-                            TcpClientContext client = _tcpClients[clientCounter];
-                            Task.Factory.StartNew(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested)).Wait();
+                            if (CheckClientConnected(_tcpClients[clientCounter].Client) && !_tcpClients[clientCounter].IsProcessing)
+                            {
+                                TcpClientContext client = _tcpClients[clientCounter];
+                                Int32 freeTaskIndex = -1;
+                                for (Int32 taskCounter = 0; taskCounter < _clientProcessingTasks.Count; taskCounter++)
+                                {
+                                    if (_clientProcessingTasks[taskCounter] == null ||
+                                        _clientProcessingTasks[taskCounter].IsCompleted ||
+                                        (_clientProcessingTasks[taskCounter].Status != TaskStatus.Running &&
+                                         _clientProcessingTasks[taskCounter].Status != TaskStatus.WaitingToRun &&
+                                         _clientProcessingTasks[taskCounter].Status != TaskStatus.WaitingForActivation &&
+                                         _clientProcessingTasks[taskCounter].Status != TaskStatus.WaitingForChildrenToComplete))
+                                    {
+                                        freeTaskIndex = taskCounter;
+                                        break;
+                                    }
+                                }
+                                if (freeTaskIndex >= 0)
+                                {
+                                    _tcpClients[clientCounter].IsProcessing = true;
+                                    Console.WriteLine("[Server, StartClientProcessing] Starting task 4 IO with client");
+                                    _clientProcessingTasks[freeTaskIndex] = new Task(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
+                                    _clientProcessingTasks[freeTaskIndex].Start();
+                                }
+                            }
                         }
                     }
-                }
-                // 3. check "disconnected" clients ...
-                IList<TcpClientContext> disoonnectedClients = _tcpClients.Where(client => !CheckClientConnected(client.Client)).ToList();
-                lock (_tcpClients)
-                {
-                    foreach (TcpClientContext client in disoonnectedClients)
-                        _tcpClients.Remove(client);
+                
+                    // 3. check "disconnected" clients ...
+                    lock (_tcpClients)
+                    {
+                        IList<TcpClientContext> disoonnectedClients = _tcpClients.Where(client => !client.IsProcessing && !CheckClientConnected(client.Client)).ToList();
+                        foreach (TcpClientContext client in disoonnectedClients)
+                            _tcpClients.Remove(client);
+                    }
                 }
             }
         }
@@ -152,12 +189,14 @@ namespace TinyTcpServer.Core.Server
         private void ClientConnectProcessing()
         {
             Console.WriteLine("[Server, ClientConnectProcessing]waiting 4 clients");
+            Int32 clientsNumber = _tcpClients.Count;
             for (Int32 attempt = 0; attempt < _clientConnectAttempts; attempt++)
             {
                 _clientConnectEvent.Reset();
-                //lock (_synch)
-                    _tcpListener.BeginAcceptTcpClient(ConnectAsyncCallback, _tcpListener);
+                _tcpListener.BeginAcceptTcpClient(ConnectAsyncCallback, _tcpListener);
                 _clientConnectEvent.Wait(_clientConnectTimeout);
+                if (_tcpClients.Count > clientsNumber)
+                    break;
             }
         }
 
@@ -166,7 +205,6 @@ namespace TinyTcpServer.Core.Server
             try
             {
                 TcpClient client = _tcpListener.EndAcceptTcpClient(state);
-                //client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 if (client.Connected)
                 {
                     lock(_tcpClients)
@@ -188,14 +226,7 @@ namespace TinyTcpServer.Core.Server
                 return false;
             try
             {
-                /*if (client.Client.Poll(0, SelectMode.SelectWrite) && !client.Client.Poll(0, SelectMode.SelectError))
-                {
-                    Byte[] buffer = new Byte[1];
-                    return client.Client.Receive(buffer, SocketFlags.Peek) != 0;
-                }*/
                 return !(client.Client.Poll(0, SelectMode.SelectRead) && client.Client.Available == 0);
-                //client.Client.Poll(0, SelectMode.SelectWrite) && !client.Client.Poll(0, SelectMode.SelectError);
-                //false;
             }
             catch (Exception)
             {
@@ -209,12 +240,13 @@ namespace TinyTcpServer.Core.Server
             Byte[] receivedData = ReceiveImpl(client);
             if (receivedData != null)
             {
-                IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  linkedHandlers =
+                IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>> linkedHandlers =
                 _clientsHandlers.Where(item =>
                 {
                     //todo: umv: add special selection for AnyPort and AnyIp
                     return TcpClientHandlerSelector.Select(item.Item1, client);
                 }).ToList();
+                Console.WriteLine("[Server ProcessClientReceiveSend] found {0} handlers", linkedHandlers.Count);
                 foreach (Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler in linkedHandlers)
                 {
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
@@ -229,15 +261,22 @@ namespace TinyTcpServer.Core.Server
         {
             Byte[] buffer = new Byte[DefaultClientBufferSize];
             client.BytesRead = 0;
-            
+
             try
             {
-                //lock(client.SynchObject)
-                //{ 
                 Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
+                
+                for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
+                {
                     NetworkStream netStream = client.Client.GetStream();
-                    netStream.ReadTimeout = 100;//100;//1500;
-                    while (netStream.DataAvailable || client.Client.Client.Poll(20000, SelectMode.SelectRead))
+                    Boolean result = netStream.DataAvailable;
+                    for (Int32 counter = 0; counter < 5; counter++)
+                    {
+                        result = client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
+                        if (result)
+                            break;
+                    }
+                    while (result)
                     {
                         client.ReadDataEvent.Reset();
                         if (buffer.Length < client.BytesRead + DefaultChunkSize)
@@ -247,10 +286,21 @@ namespace TinyTcpServer.Core.Server
                         lock (client.SynchObject)
                             netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
+                        result = netStream.DataAvailable;
+                        if (!result)
+                        {
+                            for (Int32 counter = 0; counter < 5; counter++)
+                            {
+                                client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
+                                result = netStream.DataAvailable;
+                                if (result)
+                                    break;
+                            }
+                        }
                     }
-                    Array.Resize(ref buffer, client.BytesRead);
-                    Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
-                //}
+                }
+                Array.Resize(ref buffer, client.BytesRead);
+                Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
             }
             catch (Exception)
             {
@@ -275,21 +325,18 @@ namespace TinyTcpServer.Core.Server
         {
             try
             {
-                //lock (client.SynchObject)
-                //{
-                    client.WriteDataEvent.Reset();
-                    NetworkStream netStream = client.Client.GetStream();
-                    //netStream.Flush();
-                    netStream.WriteTimeout = 100;//2500;
-                    //lock(synch)
-                    lock (client.SynchObject)
-                        netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
-                    client.WriteDataEvent.Wait(_writeTimeout);
-                //}
+                Console.WriteLine("[Server, SendImpl] Write started");
+                client.WriteDataEvent.Reset();
+                NetworkStream netStream = client.Client.GetStream();
+                lock (client.SynchObject)
+                    netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
+                client.WriteDataEvent.Wait(_writeTimeout);
+                Console.WriteLine("[Server, SendImpl] Write done");
             }
             catch (Exception)
             {
                 //todo: umv: add error handling
+                Console.WriteLine("[Server, SendImpl] Something goes wrong");
             }
         }
 
@@ -309,19 +356,28 @@ namespace TinyTcpServer.Core.Server
         private const Int32 DefaultClientBufferSize = 16384;
         private const Int32 DefaultChunkSize = 1536;
         private const Int32 DefaultClientConnectAttempts = 5;
-        private const Int32 DefaultClientConnectTimeout = 50;//200;
-        private const Int32 DefaultReadTimeout = 200;
-        private const Int32 DefaultWriteTimeout = 200;
+        private const Int32 DefaultClientConnectTimeout = 200;  //ms
+        private const Int32 DefaultReadTimeout =300;            //ms
+        private const Int32 DefaultWriteTimeout = 200;          //ms
+        private const Int32 DefaultPollTime = 1000;             //us
+        private const Int32 DefaultReadAttempts = 25;
+        private const Int32 DefaultParallelClientProcessingTasks = 32;
 
         // timeouts
         //todo: umv: make adjustable
         private Int32 _clientConnectTimeout = DefaultClientConnectTimeout;
         private Int32 _readTimeout = DefaultReadTimeout;
         private Int32 _writeTimeout = DefaultWriteTimeout;
+        private Int32 _pollTime = DefaultPollTime;
         // other parameters
         private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;
+        private Int32 _clientReadAttempts = DefaultReadAttempts;
+        private Int32 _parallelClientProcessingTasks = DefaultParallelClientProcessingTasks;
 
+        // threading things
         private readonly ManualResetEventSlim _clientConnectEvent = new ManualResetEventSlim();
+        private readonly IList<Task> _clientProcessingTasks;
+        private Task _clientConnectingTask;                                                           
         
         private readonly IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  _clientsHandlers = new List<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>();
         private readonly IList<TcpClientContext> _tcpClients = new List<TcpClientContext>(); 
