@@ -172,11 +172,11 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
                 Console.WriteLine("[CLIENT, ReadAsync] client read started");
                 _bytesRead = 0;
 
-                for (Int32 attempt = 0; attempt < 32; attempt++)
+                for (Int32 attempt = 0; attempt < 64; attempt++)
                 {
                     if (_clientSocket.Available == 0)
                     {
-                        _clientSocket.Poll(40000, SelectMode.SelectRead);
+                        _clientSocket.Poll(50000, SelectMode.SelectRead);
                         continue;
                     }
                     attempt = 0;

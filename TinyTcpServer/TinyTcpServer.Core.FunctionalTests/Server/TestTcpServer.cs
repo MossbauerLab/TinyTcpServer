@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using TinyTcpServer.Core.FunctionalTests.TestUtils;
@@ -65,8 +66,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1048576, 2, false)]
         public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
-            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                            isClientAsync, 2000, 200, 200))
+            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000, 200, 200))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);
@@ -92,8 +92,7 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(40000, 10, 100, 150, false)]
         public void TestServerExchangeWithPausesAndOneClient(Int32 dataSize, Int32 repetition, Int32 minPauseTime, Int32 maxPauseTime, Boolean isClientAsync)
         {
-            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1),
-                                                            isClientAsync, 2000, 500, 500))
+            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000, 200, 200))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);
@@ -128,9 +127,13 @@ namespace TinyTcpServer.Core.FunctionalTests.Server
             {
                 Task clientTask = new Task(() =>
                 {
-                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 200, 200, 400))
+                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 500, 500, 1000))
                     {
                         client.Open();
+                        ManualResetEventSlim openWaitEvent = new ManualResetEventSlim();
+                        openWaitEvent.Wait(1000);
+                        openWaitEvent.Dispose();
+                        // wait 4 getting a chance for client to be ready for IO with server
                         ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
                         client.Close();
                     }
