@@ -147,19 +147,26 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             //todo: umv make more complicated error handling
             try
             {
+                Console.WriteLine("[CLIENT, ReadAsync] client read started");
                 _bytesRead = 0;
-                do
+
+                for (Int32 attempt = 0; attempt < 32; attempt++)
                 {
-                    lock (_synch)
+                    if (_clientSocket.Available == 0)
                     {
-                        _readCompleted.Reset();
-                        Int32 offset = _bytesRead;
-                        Int32 size = Math.Min(MaximumPacketSize, _clientSocket.Available);
-                        _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
-                        _readCompleted.Wait(_readTimeout);
+                        _clientSocket.Poll(40000, SelectMode.SelectRead);
+                        continue;
                     }
-                } 
-                while (_clientSocket.Available > 0 || _clientSocket.Poll(100000, SelectMode.SelectRead));
+                    attempt = 0;
+                    _readCompleted.Reset();
+                    Int32 offset = _bytesRead;
+                    Int32 size = _clientSocket.Available;
+                    lock (_synch)
+                        _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
+                    _readCompleted.Wait(10);
+                    if (_bytesRead == data.Length)
+                        break;
+                }
                 bytesRead = _bytesRead;
                 Console.WriteLine("[CLIENT, ReadAsync] client read done");
                 return true;
@@ -167,6 +174,7 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
             catch (Exception)
             {
                 bytesRead = 0;
+                Console.WriteLine("[CLIENT, ReadAsync] something goes wrong");
                 return false;
             }
         }

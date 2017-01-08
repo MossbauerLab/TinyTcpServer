@@ -53,12 +53,10 @@ namespace TinyTcpServer.Core.Server
 
         public void Dispose()
         {
-            /*_clientConnectingTask.Dispose();
+            _clientConnectingTask.Dispose();
             foreach (Task clientProcessingTask in _clientProcessingTasks)
-            {
                 if(clientProcessingTask != null)
                     clientProcessingTask.Dispose();
-            }*/
             _clientConnectEvent.Dispose();
         }
 
@@ -141,15 +139,6 @@ namespace TinyTcpServer.Core.Server
                     if (_tcpClients.Count == 0)
                         _clientConnectingTask.Wait();
                 }
-
-
-                /*Task listenClients = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
-                listenClients.Start();
-                if (_tcpClients.Count == 0)
-                    listenClients.Wait();*/
-                //Task.Factory.StartNew(ClientConnectProcessing, new CancellationToken(_interruptRequested)).Wait();
-                //if(_connectTask.Status !=TaskStatus.Running)
-                    //_connectTask.Start();
                 
                 if(_tcpClients.Count != 0)
                 { 
@@ -181,21 +170,7 @@ namespace TinyTcpServer.Core.Server
                                     Console.WriteLine("[Server, StartClientProcessing] Starting task 4 IO with client");
                                     _clientProcessingTasks[freeTaskIndex] = new Task(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
                                     _clientProcessingTasks[freeTaskIndex].Start();
-                                    //_clientProcessingTasks[freeTaskIndex].Wait();
                                 }
-                                //_clientProcessingTasks[0].Wait();
-                                /*Task clientProcessingTask = _clientProcessingTasks.FirstOrDefault(task => task == null ||
-                                                                                                          task.IsCompleted ||
-                                                                                                          task.Status != TaskStatus.Running &&
-                                                                                                          task.Status != TaskStatus.WaitingToRun &&
-                                                                                                          task.Status != TaskStatus.WaitingForActivation &&
-                                                                                                          task.Status != TaskStatus.WaitingForChildrenToComplete);
-                                clientProcessingTask = new Task(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
-                                clientProcessingTask.Start();
-                                clientProcessingTask.Wait();*/
-                                //new Task(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
-                                // clientProcessingTask.Start();
-                                //Task.Factory.StartNew(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested)).Wait();
                             }
                         }
                     }
@@ -265,12 +240,13 @@ namespace TinyTcpServer.Core.Server
             Byte[] receivedData = ReceiveImpl(client);
             if (receivedData != null)
             {
-                IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  linkedHandlers =
+                IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>> linkedHandlers =
                 _clientsHandlers.Where(item =>
                 {
                     //todo: umv: add special selection for AnyPort and AnyIp
                     return TcpClientHandlerSelector.Select(item.Item1, client);
                 }).ToList();
+                Console.WriteLine("[Server ProcessClientReceiveSend] found {0} handlers", linkedHandlers.Count);
                 foreach (Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler in linkedHandlers)
                 {
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
@@ -290,18 +266,15 @@ namespace TinyTcpServer.Core.Server
             {
                 Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
                 
-                for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++) 
-                //while (netStream.DataAvailable || client.Client.Client.Poll(100, SelectMode.SelectRead))
+                for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
                 {
                     NetworkStream netStream = client.Client.GetStream();
-                    Boolean result = netStream.DataAvailable;// || client.Client.Client.Poll(1000, SelectMode.SelectRead);
-                    if (!result)
-                        client.Client.Client.Poll(1000, SelectMode.SelectRead);
-                    result = netStream.DataAvailable;
-                    if (!result)
+                    Boolean result = netStream.DataAvailable;
+                    for (Int32 counter = 0; counter < 5; counter++)
                     {
-                        client.Client.Client.Poll(100, SelectMode.SelectRead);
-                        continue;
+                        result = client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
+                        if (result)
+                            break;
                     }
                     while (result)
                     {
@@ -313,11 +286,17 @@ namespace TinyTcpServer.Core.Server
                         lock (client.SynchObject)
                             netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
-                        
-                        result = netStream.DataAvailable;// || client.Client.Client.Poll(1000, SelectMode.SelectRead);
-                        if(!result)
-                            client.Client.Client.Poll(1000, SelectMode.SelectRead);
                         result = netStream.DataAvailable;
+                        if (!result)
+                        {
+                            for (Int32 counter = 0; counter < 5; counter++)
+                            {
+                                client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
+                                result = netStream.DataAvailable;
+                                if (result)
+                                    break;
+                            }
+                        }
                     }
                 }
                 Array.Resize(ref buffer, client.BytesRead);
@@ -346,15 +325,18 @@ namespace TinyTcpServer.Core.Server
         {
             try
             {
+                Console.WriteLine("[Server, SendImpl] Write started");
                 client.WriteDataEvent.Reset();
                 NetworkStream netStream = client.Client.GetStream();
                 lock (client.SynchObject)
                     netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
                 client.WriteDataEvent.Wait(_writeTimeout);
+                Console.WriteLine("[Server, SendImpl] Write done");
             }
             catch (Exception)
             {
                 //todo: umv: add error handling
+                Console.WriteLine("[Server, SendImpl] Something goes wrong");
             }
         }
 
@@ -374,17 +356,19 @@ namespace TinyTcpServer.Core.Server
         private const Int32 DefaultClientBufferSize = 16384;
         private const Int32 DefaultChunkSize = 1536;
         private const Int32 DefaultClientConnectAttempts = 5;
-        private const Int32 DefaultClientConnectTimeout = 200;
-        private const Int32 DefaultReadTimeout =300;
-        private const Int32 DefaultWriteTimeout = 500;
+        private const Int32 DefaultClientConnectTimeout = 200;  //ms
+        private const Int32 DefaultReadTimeout =300;            //ms
+        private const Int32 DefaultWriteTimeout = 200;          //ms
+        private const Int32 DefaultPollTime = 1000;             //us
         private const Int32 DefaultReadAttempts = 25;
-        private const Int32 DefaultParallelClientProcessingTasks = 8;
+        private const Int32 DefaultParallelClientProcessingTasks = 32;
 
         // timeouts
         //todo: umv: make adjustable
         private Int32 _clientConnectTimeout = DefaultClientConnectTimeout;
         private Int32 _readTimeout = DefaultReadTimeout;
         private Int32 _writeTimeout = DefaultWriteTimeout;
+        private Int32 _pollTime = DefaultPollTime;
         // other parameters
         private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;
         private Int32 _clientReadAttempts = DefaultReadAttempts;
