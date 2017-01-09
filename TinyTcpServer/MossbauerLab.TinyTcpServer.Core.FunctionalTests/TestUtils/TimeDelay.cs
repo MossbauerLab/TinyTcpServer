@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace TinyTcpServer.Core.FunctionalTests.TestUtils
+namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 {
     internal static class TimeDelay
     {

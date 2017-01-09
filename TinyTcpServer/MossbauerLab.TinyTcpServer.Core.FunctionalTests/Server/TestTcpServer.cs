@@ -3,11 +3,11 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using TinyTcpServer.Core.FunctionalTests.TestUtils;
-using TinyTcpServer.Core.Handlers;
-using TinyTcpServer.Core.Server;
+using MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils;
+using MossbauerLab.TinyTcpServer.Core.Handlers;
+using MossbauerLab.TinyTcpServer.Core.Server;
 
-namespace TinyTcpServer.Core.FunctionalTests.Server
+namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
 {
     [TestFixture]
     public class TestTcpServer

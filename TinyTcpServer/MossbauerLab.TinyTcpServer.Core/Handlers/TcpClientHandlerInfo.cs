@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TinyTcpServer.Core.Handlers
+namespace MossbauerLab.TinyTcpServer.Core.Handlers
 {
     public class TcpClientHandlerInfo
     {

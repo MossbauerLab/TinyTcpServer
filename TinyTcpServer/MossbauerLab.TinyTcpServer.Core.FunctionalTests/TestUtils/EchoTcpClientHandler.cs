@@ -1,7 +1,7 @@
 ﻿using System;
-using TinyTcpServer.Core.Handlers;
+using MossbauerLab.TinyTcpServer.Core.Handlers;
 
-namespace TinyTcpServer.Core.FunctionalTests.TestUtils
+namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 {
     internal static class EchoTcpClientHandler
     {

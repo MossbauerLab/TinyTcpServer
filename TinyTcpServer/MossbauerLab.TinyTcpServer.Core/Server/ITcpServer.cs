@@ -1,8 +1,7 @@
 ﻿using System;
-using TinyTcpServer.Core.Client;
-using TinyTcpServer.Core.Handlers;
+using MossbauerLab.TinyTcpServer.Core.Handlers;
 
-namespace TinyTcpServer.Core.Server
+namespace MossbauerLab.TinyTcpServer.Core.Server
 {
     public interface ITcpServer
     {

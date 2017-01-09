@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TinyTcpServer.FunctionalTests")]
+[assembly: AssemblyTitle("MossbauerLab.TinyTcpServer.Core.FunctionalTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("MossbauerLab")]
-[assembly: AssemblyProduct("TinyTcpServer.FunctionalTests")]
+[assembly: AssemblyProduct("MossbauerLab.TinyTcpServer.Core.FunctionalTests")]
 [assembly: AssemblyCopyright("Copyright © MossbauerLab 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

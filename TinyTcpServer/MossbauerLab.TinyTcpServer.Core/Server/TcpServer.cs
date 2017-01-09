@@ -5,11 +5,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using TinyTcpServer.Core.Client;
-using TinyTcpServer.Core.Handlers;
-using TinyTcpServer.Core.Handlers.Utils;
+using MossbauerLab.TinyTcpServer.Core.Client;
+using MossbauerLab.TinyTcpServer.Core.Handlers;
+using MossbauerLab.TinyTcpServer.Core.Handlers.Utils;
 
-namespace TinyTcpServer.Core.Server
+namespace MossbauerLab.TinyTcpServer.Core.Server
 {
     public class TcpServer : ITcpServer, IDisposable
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TinyTcpServer.Core
+namespace MossbauerLab.TinyTcpServer.Core
 {
     public static class GlobalDefs
     {

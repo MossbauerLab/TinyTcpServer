@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace TinyTcpServer.Core.FunctionalTests.TestUtils
+namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 {
     internal class NetworkClient : IDisposable
     {

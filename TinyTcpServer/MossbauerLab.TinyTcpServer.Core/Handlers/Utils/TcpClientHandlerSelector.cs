@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using TinyTcpServer.Core.Client;
+using MossbauerLab.TinyTcpServer.Core.Client;
 
-namespace TinyTcpServer.Core.Handlers.Utils
+namespace MossbauerLab.TinyTcpServer.Core.Handlers.Utils
 {
     internal static class TcpClientHandlerSelector
     {

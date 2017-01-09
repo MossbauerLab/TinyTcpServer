@@ -7,8 +7,8 @@
     <ProjectGuid>{358EC7BA-5091-482B-8894-AFE0E1A67288}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TinyTcpServer.Core</RootNamespace>
-    <AssemblyName>TinyTcpServer.Core</AssemblyName>
+    <RootNamespace>MossbauerLab.TinyTcpServer.Core</RootNamespace>
+    <AssemblyName>MossbauerLab.TinyTcpServer.Core</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

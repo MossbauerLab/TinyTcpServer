@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Threading;
 
-namespace TinyTcpServer.Core.Client
+namespace MossbauerLab.TinyTcpServer.Core.Client
 {
     //todo: umv: add dispose
     public class TcpClientContext

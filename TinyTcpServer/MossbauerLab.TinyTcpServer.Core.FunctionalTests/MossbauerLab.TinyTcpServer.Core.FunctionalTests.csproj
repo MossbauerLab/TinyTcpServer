@@ -7,8 +7,8 @@
     <ProjectGuid>{5583337D-D872-4AB7-A4B5-A8309BB2F455}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TinyTcpServer.Core.FunctionalTests</RootNamespace>
-    <AssemblyName>TinyTcpServer.Core.FunctionalTests</AssemblyName>
+    <RootNamespace>MossbauerLab.TinyTcpServer.Core.FunctionalTests</RootNamespace>
+    <AssemblyName>MossbauerLab.TinyTcpServer.Core.FunctionalTests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -53,9 +53,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TinyTcpServer.Core\TinyTcpServer.Core.csproj">
+    <ProjectReference Include="..\MossbauerLab.TinyTcpServer.Core\MossbauerLab.TinyTcpServer.Core.csproj">
       <Project>{358ec7ba-5091-482b-8894-afe0e1a67288}</Project>
-      <Name>TinyTcpServer.Core</Name>
+      <Name>MossbauerLab.TinyTcpServer.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
