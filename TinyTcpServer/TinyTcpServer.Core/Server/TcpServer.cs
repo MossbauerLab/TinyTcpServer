@@ -167,7 +167,7 @@ namespace TinyTcpServer.Core.Server
                                 if (freeTaskIndex >= 0)
                                 {
                                     _tcpClients[clientCounter].IsProcessing = true;
-                                    Console.WriteLine("[Server, StartClientProcessing] Starting task 4 IO with client");
+                                    //Console.WriteLine("[Server, StartClientProcessing] Starting task 4 IO with client");
                                     _clientProcessingTasks[freeTaskIndex] = new Task(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
                                     _clientProcessingTasks[freeTaskIndex].Start();
                                 }
@@ -188,7 +188,7 @@ namespace TinyTcpServer.Core.Server
 
         private void ClientConnectProcessing()
         {
-            Console.WriteLine("[Server, ClientConnectProcessing]waiting 4 clients");
+            //Console.WriteLine("[Server, ClientConnectProcessing]waiting 4 clients");
             Int32 clientsNumber = _tcpClients.Count;
             for (Int32 attempt = 0; attempt < _clientConnectAttempts; attempt++)
             {
@@ -236,7 +236,7 @@ namespace TinyTcpServer.Core.Server
 
         private void ProcessClientReceiveSend(TcpClientContext client)
         {
-            Console.WriteLine("[Server ProcessClientReceiveSend] IO with client");
+            //Console.WriteLine("[Server ProcessClientReceiveSend] IO with client");
             Byte[] receivedData = ReceiveImpl(client);
             if (receivedData != null)
             {
@@ -246,7 +246,7 @@ namespace TinyTcpServer.Core.Server
                     //todo: umv: add special selection for AnyPort and AnyIp
                     return TcpClientHandlerSelector.Select(item.Item1, client);
                 }).ToList();
-                Console.WriteLine("[Server ProcessClientReceiveSend] found {0} handlers", linkedHandlers.Count);
+                //Console.WriteLine("[Server ProcessClientReceiveSend] found {0} handlers", linkedHandlers.Count);
                 foreach (Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler in linkedHandlers)
                 {
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
@@ -264,7 +264,7 @@ namespace TinyTcpServer.Core.Server
 
             try
             {
-                Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
+                //Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
                 
                 for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
                 {
@@ -300,7 +300,7 @@ namespace TinyTcpServer.Core.Server
                     }
                 }
                 Array.Resize(ref buffer, client.BytesRead);
-                Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
+                //Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
             }
             catch (Exception)
             {
@@ -325,13 +325,13 @@ namespace TinyTcpServer.Core.Server
         {
             try
             {
-                Console.WriteLine("[Server, SendImpl] Write started");
+                //Console.WriteLine("[Server, SendImpl] Write started");
                 client.WriteDataEvent.Reset();
                 NetworkStream netStream = client.Client.GetStream();
                 lock (client.SynchObject)
                     netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
                 client.WriteDataEvent.Wait(_writeTimeout);
-                Console.WriteLine("[Server, SendImpl] Write done");
+                //Console.WriteLine("[Server, SendImpl] Write done");
             }
             catch (Exception)
             {
@@ -346,7 +346,7 @@ namespace TinyTcpServer.Core.Server
             if (client == null)
                 throw new ApplicationException("state can't be null");
             client.Client.GetStream().EndWrite(state);
-            Console.WriteLine("[Server, WriteAsyncCallback] Write done!");
+            //Console.WriteLine("[Server, WriteAsyncCallback] Write done!");
             client.WriteDataEvent.Set();
         }
 

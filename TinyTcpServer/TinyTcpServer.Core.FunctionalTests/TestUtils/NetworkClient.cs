@@ -223,14 +223,14 @@ namespace TinyTcpServer.Core.FunctionalTests.TestUtils
                 while (_bytesSend < data.Length)
                 {
                     _writeCompleted.Reset();
-                    Int32 offset = _bytesSend;
-                    Int32 size = Math.Min(MaximumPacketSize, data.Length - _bytesSend);
-                    lock (_synch)
+                    //Int32 offset = _bytesSend;
+                    //Int32 size = Math.Min(MaximumPacketSize, data.Length - _bytesSend);
+/*                    lock (_synch)
                     {
                         _clientSocket.BeginSend(data, offset, size, SocketFlags.Partial, WriteAsyncCallback,  _clientSocket);
-                    }
-                    //lock (_synch)
-                    //_clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
+                    }*/
+                    lock (_synch)
+                        _clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
                     _writeCompleted.Wait(_writeTimeout);
                 }
                 Console.WriteLine("[Client, WriteAsync] write done, bytes written: " + _bytesSend);
