@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>MossbauerLab.TinyTcpServer.Core</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>MossbauerLab</authors>
+    <owners>MossbauerLab</owners>
+    <licenseUrl>https://github.com/MossbauerLab/TinyTcpServer/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/MossbauerLab/TinyTcpServer</projectUrl>
+    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A tiny (ligthweight) tcp server providing transport layer and hooks for application</description>
+    <releaseNotes>First alpha of this server (tested with NUnit)</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>Tcp Server Hooks Transport</tags>
+  </metadata>
+</package>
