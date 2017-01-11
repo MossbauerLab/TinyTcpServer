@@ -92,6 +92,11 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             }
         }
 
+        public Int32 ConnectedClients
+        {
+            get { return _tcpClients.Count; }
+        }
+
         private void AssignIpAddressAndPort(String ipAddress, UInt16 port)
         {
             if(String.IsNullOrEmpty(ipAddress))
@@ -127,6 +132,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
         private void StartClientProcessing()
         {
+            Int32 clientIndex = 0;
             while (!_interruptRequested)
             {
                 // 1. waiting for connection ...
@@ -145,7 +151,9 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     // 2. handle clients ... (read + write)
                     lock (_tcpClients)
                     {
-                        for (Int32 clientCounter = 0; clientCounter < _tcpClients.Count; clientCounter++)
+                        if (clientIndex >= _tcpClients.Count)
+                            clientIndex = 0;
+                        for (Int32 clientCounter = clientIndex; clientCounter < _tcpClients.Count; clientCounter++)
                         {
                             if (CheckClientConnected(_tcpClients[clientCounter].Client) && !_tcpClients[clientCounter].IsProcessing)
                             {
@@ -171,6 +179,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                                     _clientProcessingTasks[freeTaskIndex] = new Task(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
                                     _clientProcessingTasks[freeTaskIndex].Start();
                                 }
+                                else clientIndex = clientCounter;
                             }
                         }
                     }

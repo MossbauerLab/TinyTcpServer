@@ -83,7 +83,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             {
                 if (_isAsynchronous)
                     return WriteAsync(data);
-                Int32 bytesSend = _clientSocket.Send(data, SocketFlags.Partial);
+                Int32 bytesSend = _clientSocket.Send(data, SocketFlags.None);
                 return bytesSend == data.Length;
             }
             catch (Exception)
@@ -217,8 +217,8 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             Console.WriteLine("[Client, WriteAsync] write started");
             try
             {
-                if (!State)
-                    return false;
+                //if (!State)
+                    //return false;
                 _bytesSend = 0;
                 while (_bytesSend < data.Length)
                 {
@@ -262,7 +262,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 
         public Boolean State { get; private set; }
 
-        private const Int32 MaximumPacketSize = 1536;
         private const Int32 DefaultConnectionWaitTimeout = 4000;
         private const Int32 DefaultReadTimeout = 2000;
         private const Int32 DefaultWriteTimeout = 2000;

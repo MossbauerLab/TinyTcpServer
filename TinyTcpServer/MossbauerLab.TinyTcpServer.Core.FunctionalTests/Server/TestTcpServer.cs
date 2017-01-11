@@ -126,11 +126,15 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             {
                 Task clientTask = new Task(() =>
                 {
-                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 500, 500, 1000))
+                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 400, 500, 500))
                     {
                         client.Open();
                         ManualResetEventSlim openWaitEvent = new ManualResetEventSlim();
-                        openWaitEvent.Wait(1000);
+                        while (_server.ConnectedClients != numberOfClients)
+                        {
+                            openWaitEvent.Reset();
+                            openWaitEvent.Wait(10);
+                        }
                         openWaitEvent.Dispose();
                         // wait 4 getting a chance for client to be ready for IO with server
                         ExchangeWithRandomDataAndCheck(client, dataSize, repetition);

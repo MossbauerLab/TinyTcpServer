@@ -14,5 +14,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         // send data functions
         void SendData(TcpClientHandlerInfo clientHandlerInfo, Byte[] data);
         // filtering functions
+        // properties
+        Int32 ConnectedClients { get; }
     }
 }
