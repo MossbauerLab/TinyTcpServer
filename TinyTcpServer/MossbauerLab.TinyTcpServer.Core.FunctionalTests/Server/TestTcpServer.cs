@@ -20,7 +20,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             _server = null;
             _server = new TcpServer();
             _server.AddHandler(_clientHandlerInfo, EchoTcpClientHandler.Handle);
-            //EchoTcpClientHandler.Reset();
         }
 
         [TearDown]

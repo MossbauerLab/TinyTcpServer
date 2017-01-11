@@ -306,7 +306,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             {
                 // todo: umv: add exception handling ....
                 buffer = null;
-                Console.WriteLine("Something goes wrong [read]");
+                //Console.WriteLine("Something goes wrong [read]");
             }
 
             return buffer;
@@ -336,7 +336,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             catch (Exception)
             {
                 //todo: umv: add error handling
-                Console.WriteLine("[Server, SendImpl] Something goes wrong");
+                //Console.WriteLine("[Server, SendImpl] Something goes wrong");
             }
         }
 
