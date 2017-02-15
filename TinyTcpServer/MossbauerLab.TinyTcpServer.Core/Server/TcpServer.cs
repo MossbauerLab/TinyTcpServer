@@ -296,7 +296,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                             netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
                         result = netStream.DataAvailable;
-                        if (!result)
+                        /*if (!result)
                         {
                             for (Int32 counter = 0; counter < 5; counter++)
                             {
@@ -305,7 +305,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                                 if (result)
                                     break;
                             }
-                        }
+                        }*/
                     }
                 }
                 Array.Resize(ref buffer, client.BytesRead);
@@ -368,7 +368,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultClientConnectTimeout = 200;  //ms
         private const Int32 DefaultReadTimeout =300;            //ms
         private const Int32 DefaultWriteTimeout = 200;          //ms
-        private const Int32 DefaultPollTime = 1000;             //us
+        private const Int32 DefaultPollTime = 1;//1000;             //us
         private const Int32 DefaultReadAttempts = 25;
         private const Int32 DefaultParallelClientProcessingTasks = 32;
 

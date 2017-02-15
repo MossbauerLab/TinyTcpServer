@@ -171,8 +171,8 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             {
                 Console.WriteLine("[CLIENT, ReadAsync] client read started");
                 _bytesRead = 0;
-
-                for (Int32 attempt = 0; attempt < 64; attempt++)
+                Int32 readAttempts = 8; // 64
+                for (Int32 attempt = 0; attempt < readAttempts; attempt++)
                 {
                     if (_clientSocket.Available == 0)
                     {
