@@ -279,12 +279,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 {
                     NetworkStream netStream = client.Client.GetStream();
                     Boolean result = netStream.DataAvailable;
-/*                    for (Int32 counter = 0; counter < 2; counter++)
-                    {
-                        result = client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
-                        if (result)
-                            break;
-                    }*/
                     while (result)
                     {
                         client.ReadDataEvent.Reset();
@@ -295,17 +289,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                         lock (client.SynchObject)
                             netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
-                        result = netStream.DataAvailable;// || client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
-                        /*if (!result)
-                        {
-                            for (Int32 counter = 0; counter < 5; counter++)
-                            {
-                                client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
-                                result = netStream.DataAvailable;
-                                if (result)
-                                    break;
-                            }
-                        }*/
+                        result = netStream.DataAvailable;
                     }
                     client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
                 }
