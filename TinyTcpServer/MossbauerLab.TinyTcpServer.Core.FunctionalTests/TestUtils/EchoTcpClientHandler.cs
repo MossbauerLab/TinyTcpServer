@@ -7,7 +7,10 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
     {
         public static Byte[] Handle(Byte[] data, TcpClientHandlerInfo info)
         {
-            return data;
+            Byte[] outputData = new Byte[data.Length];
+            lock(data)
+                Array.Copy(data, outputData, data.Length);
+            return outputData;
         }
     }
 }

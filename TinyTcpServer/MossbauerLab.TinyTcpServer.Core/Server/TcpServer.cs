@@ -286,8 +286,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                             Array.Resize(ref buffer, buffer.Length + 10 * DefaultChunkSize);
                         Int32 offset = client.BytesRead;
                         Int32 size = DefaultChunkSize;
-                        lock (client.SynchObject)
-                            netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
+                        //lock (client.SynchObject)
+                        netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
                         result = netStream.DataAvailable;
                     }
@@ -322,8 +322,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 //Console.WriteLine("[Server, SendImpl] Write started");
                 client.WriteDataEvent.Reset();
                 NetworkStream netStream = client.Client.GetStream();
-                lock (client.SynchObject)
-                    netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
+                //lock (client.SynchObject)
+                netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
                 client.WriteDataEvent.Wait(_writeTimeout);
                 //Console.WriteLine("[Server, SendImpl] Write done");
             }
@@ -351,7 +351,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultChunkSize = 1536;
         private const Int32 DefaultClientConnectAttempts = 5;
         private const Int32 DefaultClientConnectTimeout = 200;  //ms
-        private const Int32 DefaultReadTimeout =300;            //ms
+        private const Int32 DefaultReadTimeout = 100;            //ms
         private const Int32 DefaultWriteTimeout = 200;          //ms
         private const Int32 DefaultPollTime = 1;//1000;             //us
         private const Int32 DefaultReadAttempts = 4;//25;

@@ -174,18 +174,12 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                 Int32 readAttempts = 16;
                 for (Int32 attempt = 0; attempt < readAttempts; attempt++)
                 {
-                    if (_clientSocket.Available == 0)
-                    {
-                        _clientSocket.Poll(25000, SelectMode.SelectRead);
-                        continue;
-                    }
                     attempt = 0;
                     _readCompleted.Reset();
                     Int32 offset = _bytesRead;
                     Int32 size = _clientSocket.Available;
-                    lock (_synch)
-                        _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
-                    _readCompleted.Wait(10);
+                    _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
+                    _readCompleted.Wait(_readTimeout);
                     if (_bytesRead == data.Length)
                         break;
                 }
@@ -217,21 +211,12 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             Console.WriteLine("[Client, WriteAsync] write started");
             try
             {
-                //if (!State)
-                    //return false;
                 _bytesSend = 0;
                 while (_bytesSend < data.Length)
                 {
                     _writeCompleted.Reset();
-                    //Int32 offset = _bytesSend;
-                    //Int32 size = Math.Min(MaximumPacketSize, data.Length - _bytesSend);
-/*                    lock (_synch)
-                    {
-                        _clientSocket.BeginSend(data, offset, size, SocketFlags.Partial, WriteAsyncCallback,  _clientSocket);
-                    }*/
-                    lock (_synch)
-                        _clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
-                    _writeCompleted.Wait(_writeTimeout);
+                    _clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
+                    _writeCompleted.Wait(10);
                 }
                 Console.WriteLine("[Client, WriteAsync] write done, bytes written: " + _bytesSend);
                 return _bytesSend == data.Length;
@@ -279,7 +264,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
         private readonly ManualResetEventSlim _waitCompleted = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim _readCompleted = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim _writeCompleted = new ManualResetEventSlim(false);
-        private readonly Object _synch = new Object();
         private Int32 _bytesRead;
         private Int32 _bytesSend;
     }
