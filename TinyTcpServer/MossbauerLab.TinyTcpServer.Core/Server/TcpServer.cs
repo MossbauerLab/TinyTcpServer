@@ -279,12 +279,12 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 {
                     NetworkStream netStream = client.Client.GetStream();
                     Boolean result = netStream.DataAvailable;
-                    for (Int32 counter = 0; counter < 5; counter++)
+/*                    for (Int32 counter = 0; counter < 2; counter++)
                     {
                         result = client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
                         if (result)
                             break;
-                    }
+                    }*/
                     while (result)
                     {
                         client.ReadDataEvent.Reset();
@@ -295,7 +295,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                         lock (client.SynchObject)
                             netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
-                        result = netStream.DataAvailable;
+                        result = netStream.DataAvailable;// || client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
                         /*if (!result)
                         {
                             for (Int32 counter = 0; counter < 5; counter++)
@@ -307,6 +307,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                             }
                         }*/
                     }
+                    client.Client.Client.Poll(_pollTime, SelectMode.SelectRead);
                 }
                 Array.Resize(ref buffer, client.BytesRead);
                 //Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
@@ -369,7 +370,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultReadTimeout =300;            //ms
         private const Int32 DefaultWriteTimeout = 200;          //ms
         private const Int32 DefaultPollTime = 1;//1000;             //us
-        private const Int32 DefaultReadAttempts = 25;
+        private const Int32 DefaultReadAttempts = 4;//25;
         private const Int32 DefaultParallelClientProcessingTasks = 32;
 
         // timeouts

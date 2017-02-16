@@ -171,12 +171,12 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             {
                 Console.WriteLine("[CLIENT, ReadAsync] client read started");
                 _bytesRead = 0;
-                Int32 readAttempts = 8; // 64
+                Int32 readAttempts = 16;
                 for (Int32 attempt = 0; attempt < readAttempts; attempt++)
                 {
                     if (_clientSocket.Available == 0)
                     {
-                        _clientSocket.Poll(50000, SelectMode.SelectRead);
+                        _clientSocket.Poll(25000, SelectMode.SelectRead);
                         continue;
                     }
                     attempt = 0;
