@@ -216,12 +216,12 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             try
             {
                 _bytesSend = 0;
-                while (_bytesSend < data.Length)
-                {
+                //while (_bytesSend < data.Length)
+                //{
                     _writeCompleted.Reset();
                     _clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
-                    _writeCompleted.Wait(10);
-                }
+                    _writeCompleted.Wait(_writeTimeout);
+                //}
                 Console.WriteLine("[Client, WriteAsync] client {0}, write done, bytes written: {1}", _id, _bytesSend);
                 return _bytesSend == data.Length;
             }
