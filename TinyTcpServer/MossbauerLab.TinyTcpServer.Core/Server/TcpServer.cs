@@ -351,8 +351,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultChunkSize = 1536;
         private const Int32 DefaultClientConnectAttempts = 1; //5;
         private const Int32 DefaultClientConnectTimeout = 200;  //ms
-        private const Int32 DefaultReadTimeout = 40;            //ms
-        private const Int32 DefaultWriteTimeout = 100;          //ms
+        private const Int32 DefaultReadTimeout = 200;            //ms
+        private const Int32 DefaultWriteTimeout = 200;          //ms
         private const Int32 DefaultPollTime = 1;//1000;             //us
         private const Int32 DefaultReadAttempts = 4;//25;
         private const Int32 DefaultParallelClientProcessingTasks = 32;
