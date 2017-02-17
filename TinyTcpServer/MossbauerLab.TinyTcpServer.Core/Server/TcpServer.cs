@@ -369,7 +369,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private Int32 _parallelClientProcessingTasks = DefaultParallelClientProcessingTasks;
 
         // threading things
-        private readonly ManualResetEventSlim _clientConnectEvent = new ManualResetEventSlim();
+        private readonly ManualResetEventSlim _clientConnectEvent = new ManualResetEventSlim(false, 100);
         private readonly IList<Task> _clientProcessingTasks;
         private Task _clientConnectingTask;                                                           
         
