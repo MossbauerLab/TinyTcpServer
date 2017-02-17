@@ -104,14 +104,14 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         }
 
         [TestCase(2, 1024, 16, true)]
-        //[TestCase(64, 1024, 1, true)]
+        [TestCase(64, 1024, 1, true)]
         [TestCase(32, 1024, 16, true)]
         [TestCase(16, 8192, 32, true)]
         [TestCase(16, 16384, 32, true)]
         [TestCase(8, 131072, 8, true)]
         [TestCase(4, 1048576, 2, true)]
         [TestCase(2, 1024, 16, false)]
-        //[TestCase(64, 1024, 1, false)]
+        [TestCase(64, 1024, 1, false)]
         [TestCase(32, 1024, 16, false)]
         [TestCase(16, 8192, 32, false)]
         [TestCase(16, 16384, 32, false)]
@@ -126,7 +126,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             {
                 Task clientTask = new Task(() =>
                 {
-                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 1000, 500, 400))
+                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 1000, 500, 500))
                     {
                         client.Open();
                         ManualResetEventSlim openWaitEvent = new ManualResetEventSlim();
@@ -137,7 +137,8 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
                         }
                         openWaitEvent.Dispose();
                         // wait 4 getting a chance for client to be ready for IO with server
-                        ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
+                        for (Int32 counter = 0; counter < repetition; counter++)
+                            SingleExchangeWithRandomDataAndCheck(client, dataSize, counter);
                         client.Close();
                     }
                 });
@@ -164,22 +165,27 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             Random pauseRandomGenerator = new Random();
             for (Int32 repetitionCounter = 0; repetitionCounter < repetition; repetitionCounter++)
             {
-                Byte[] expectedData = CreateRandomData(dataSize);
-                Byte[] actualData = new Byte[expectedData.Length];
-                Int32 bytesReceived;
-                Boolean result = client.Write(expectedData);
-                Assert.IsTrue(result, String.Format("Checking that client successfully write data, at exchange cycle {0}", repetitionCounter + 1));
-                result = client.Read(actualData, out bytesReceived);
-                Assert.IsTrue(result, String.Format("Checking that read operation was performed successfully at exchange cycle {0}", repetitionCounter + 1));
-                Assert.AreEqual(expectedData.Length, bytesReceived, String.Format("Chechking that client received expected number of bytes at exchange cycle {0}", repetitionCounter + 1));
-                for (Int32 counter = 0; counter < expectedData.Length; counter++)
-                    Assert.AreEqual(expectedData[counter], actualData[counter], String.Format("Checking that arrays bytes are equals at index {0}, at exchange cycle {1}", counter,  repetitionCounter + 1));
+                SingleExchangeWithRandomDataAndCheck(client, dataSize, repetitionCounter);
                 if (pauseMin > 0 && pauseMax > 0)
                 {
                     Int32 pause = pauseRandomGenerator.Next(pauseMin, pauseMax);
                     TimeDelay.Delay(pause);
                 }
             }
+        }
+
+        private void SingleExchangeWithRandomDataAndCheck(NetworkClient client, Int32 dataSize, Int32 cycle)
+        {
+            Byte[] expectedData = CreateRandomData(dataSize);
+            Byte[] actualData = new Byte[expectedData.Length];
+            Int32 bytesReceived;
+            Boolean result = client.Write(expectedData);
+            Assert.IsTrue(result, String.Format("Checking that client successfully write data, at exchange cycle {0}", cycle + 1));
+            result = client.Read(actualData, out bytesReceived);
+            Assert.IsTrue(result, String.Format("Checking that read operation was performed successfully at exchange cycle {0}", cycle + 1));
+            Assert.AreEqual(expectedData.Length, bytesReceived, String.Format("Chechking that client received expected number of bytes at exchange cycle {0}", cycle + 1));
+            for (Int32 counter = 0; counter < expectedData.Length; counter++)
+                Assert.AreEqual(expectedData[counter], actualData[counter], String.Format("Checking that arrays bytes are equals at index {0}, at exchange cycle {1}", counter, cycle + 1));
         }
 
         private const String LocalIpAddress = "127.0.0.1";

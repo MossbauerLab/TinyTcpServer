@@ -350,18 +350,18 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultClientBufferSize = 16384;
         private const Int32 DefaultChunkSize = 1536;
         private const Int32 DefaultClientConnectAttempts = 1; //5;
-        private const Int32 DefaultClientConnectTimeout = 200;  //ms
-        private const Int32 DefaultReadTimeout = 200;            //ms
-        private const Int32 DefaultWriteTimeout = 200;          //ms
+        private const Int32 DefaultMaximumClientConnectTimeout = 200;  //ms
+        private const Int32 DefaultMaximumReadTimeout = 500;            //ms
+        private const Int32 DefaultMaximumWriteTimeout = 500;          //ms
         private const Int32 DefaultPollTime = 1;//1000;             //us
         private const Int32 DefaultReadAttempts = 4;//25;
         private const Int32 DefaultParallelClientProcessingTasks = 32;
 
         // timeouts
         //todo: umv: make adjustable
-        private Int32 _clientConnectTimeout = DefaultClientConnectTimeout;
-        private Int32 _readTimeout = DefaultReadTimeout;
-        private Int32 _writeTimeout = DefaultWriteTimeout;
+        private Int32 _clientConnectTimeout = DefaultMaximumClientConnectTimeout;
+        private Int32 _readTimeout = DefaultMaximumReadTimeout;
+        private Int32 _writeTimeout = DefaultMaximumWriteTimeout;
         private Int32 _pollTime = DefaultPollTime;
         // other parameters
         private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;
