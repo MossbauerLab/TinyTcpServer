@@ -110,13 +110,13 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(16, 16384, 32, true)]
         [TestCase(8, 131072, 8, true)]
         [TestCase(4, 1048576, 2, true)]
-        [TestCase(2, 1024, 16, false)]
+        /*[TestCase(2, 1024, 16, false)]
         [TestCase(64, 1024, 1, false)]
         [TestCase(32, 1024, 16, false)]
         [TestCase(16, 8192, 32, false)]
         [TestCase(16, 16384, 32, false)]
         [TestCase(8, 131072, 8, false)]
-        [TestCase(4, 1048576, 2, false)]
+        [TestCase(4, 1048576, 2, false)]*/
         public void TestServerExchangeWithSeveralClients(Int32 numberOfClients, Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
             Boolean result = _server.Start(LocalIpAddress, ServerPort1);
