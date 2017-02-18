@@ -73,7 +73,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             catch (Exception e)
             {
                 bytesRead = 0;
-                Console.WriteLine("[CLIENT, Read] {0} exception caught {1}" + _id, e.Message);
+                Console.WriteLine("[CLIENT, Read] {0} exception caught {1}" , _id, e.Message);
                 return false;
             }
         }
@@ -157,14 +157,14 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     bytesRead += _clientSocket.Receive(data, offset, size, SocketFlags.Partial);
                     if (bytesRead == 0)
                         break;
-                    offset += bytesRead;
+                    offset += bytesRead - 1;
                     size = data.Length - bytesRead;
                     if (size == 0)
                         break;
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}" + _id, e.Message);
+                    Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}", _id, e.Source);
                     return false;
                 }
             }
@@ -183,8 +183,10 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                 _bytesRead = 0;
                 const Int32 readAttempts = 16;
                 for (Int32 attempt = 0; attempt < readAttempts; attempt++)
+                //while(true)
                 {
-                    attempt = 0;
+                    //attempt = 0;
+                    
                     _readCompleted.Reset();
                     Int32 offset = _bytesRead;
                     Int32 size = _clientSocket.Available;
@@ -192,6 +194,10 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     _readCompleted.Wait(_readTimeout);
                     if (_bytesRead == data.Length)
                         break;
+                    if (attempt > 0 && _bytesRead > offset)
+                        attempt--;
+                    //if (_bytesRead == offset)
+                    //break;
                 }
                 bytesRead = _bytesRead;
                 Console.WriteLine("[CLIENT, ReadAsync] client {0} , read done", _id);
@@ -212,6 +218,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                 // ReSharper disable once NotResolvedInText
                 throw new ArgumentNullException("client");
             _bytesRead += client.EndReceive(result);
+            Console.WriteLine("[Client, ReadAsyncCallback] client {0} , endreceive", _id);
             _readCompleted.Set(); 
         }
 
@@ -254,6 +261,11 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             _clientSocket.SendTimeout = _writeTimeout;
             _clientSocket.ReceiveTimeout = _readTimeout;
             _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
+            _clientSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DontFragment, true);
+            //_clientSocket.DontFragment = true;
+            //_clientSocket.NoDelay = true;
+            _clientSocket.Blocking = !_isAsynchronous;
         }
 
         public Boolean State { get; private set; }
@@ -264,7 +276,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
         private const AddressFamily DeviceAddressFamily = AddressFamily.InterNetwork;
         private const SocketType DeviceSocketType = SocketType.Stream;
         private const ProtocolType DeviceProtocolType = ProtocolType.Tcp;
-        //private const Int32 NumberOfRetries = 10;
         private readonly Guid _id;
         private Socket _clientSocket;
         private readonly EndPoint _endPoint;

@@ -65,7 +65,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1048576, 2, false)]
         public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
-            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 1000, 500, 200))
+            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 1000, 500, 250))
             {
 
                 Boolean result = _server.Start(LocalIpAddress, ServerPort1);
@@ -138,7 +138,10 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
                         openWaitEvent.Dispose();
                         // wait 4 getting a chance for client to be ready for IO with server
                         for (Int32 counter = 0; counter < repetition; counter++)
+                        {
                             SingleExchangeWithRandomDataAndCheck(client, dataSize, counter);
+                            //Thread.Sleep(50);
+                        }
                         client.Close();
                     }
                 });
