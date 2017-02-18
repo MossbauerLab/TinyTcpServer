@@ -13,8 +13,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Client
                 throw new ArgumentNullException("client");
             Client = client;
             BytesRead = 0;
-            ReadDataEvent = new ManualResetEventSlim();
-            WriteDataEvent = new ManualResetEventSlim();
+            ReadDataEvent = new ManualResetEventSlim(false, 100);
+            WriteDataEvent = new ManualResetEventSlim(false, 100);
             IsProcessing = false;
             SynchObject = new Object();
         }

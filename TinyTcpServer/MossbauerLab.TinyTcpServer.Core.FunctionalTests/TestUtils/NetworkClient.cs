@@ -7,8 +7,8 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 {
     internal class NetworkClient : IDisposable
     {
-        public NetworkClient(EndPoint endPoint, Boolean isAsynchronous, Int32 connectionWaitTimeout = DefaultConnectionWaitTimeout,
-                      Int32 readTimeout = DefaultReadTimeout, Int32 writeTimeout = DefaultWriteTimeout)
+        public NetworkClient(EndPoint endPoint, Boolean isAsynchronous, Int32 connectionWaitTimeout = DefaultMaximumConnectionWaitTimeout,
+                      Int32 readTimeout = DefaultMaximumReadTimeout, Int32 writeTimeout = DefaultMaximumWriteTimeout)
         {
             if(endPoint == null)
                 throw new ArgumentNullException("endPoint");
@@ -17,6 +17,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             _connectionWaitTimeout = connectionWaitTimeout;
             _readTimeout = readTimeout;
             _writeTimeout = writeTimeout;
+            _id = Guid.NewGuid();
         }
 
         public Boolean Open()
@@ -72,7 +73,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             catch (Exception e)
             {
                 bytesRead = 0;
-                Console.WriteLine("[CLIENT, Read] exception caught" + e.Message);
+                Console.WriteLine("[CLIENT, Read] {0} exception caught {1}" , _id, e.Message);
                 return false;
             }
         }
@@ -83,11 +84,12 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             {
                 if (_isAsynchronous)
                     return WriteAsync(data);
-                Int32 bytesSend = _clientSocket.Send(data, SocketFlags.Partial);
+                Int32 bytesSend = _clientSocket.Send(data, SocketFlags.None);
                 return bytesSend == data.Length;
             }
             catch (Exception)
             {
+                Console.WriteLine("[Client, Write] {0} write FAILS", _id);
                 return false;
             }
         }
@@ -144,24 +146,32 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 
         public Boolean ReadSync(Byte[] data, out Int32 bytesRead)
         {
-            Boolean result = false;
-            Console.WriteLine("[CLIENT, ReadSync] client read started");
+            Console.WriteLine("[CLIENT, ReadSync] client {0} , read started", _id);
             bytesRead = 0;
-            for (Int32 attemp = 0; attemp < 8; attemp++)
+            Int32 offset = bytesRead;
+            Int32 size = data.Length;
+            while(true)
             {
                 try
                 {
-                    bytesRead = _clientSocket.Receive(data, SocketFlags.None);
-                    if (bytesRead > 0)
-                    {
-                        result = true;
+                    bytesRead += _clientSocket.Receive(data, offset, size, SocketFlags.Partial);
+                    if (bytesRead == 0)
                         break;
-                    }
+                    //if (bytesRead == offset)
+                        //break;
+                    offset = bytesRead;
+                    size = data.Length - bytesRead;
+                    if (size == 0)
+                        break;
                 }
-                catch (Exception){ }
+                catch (Exception e)
+                {
+                    Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}", _id, e.Source);
+                    return false;
+                }
             }
-            Console.WriteLine("[CLIENT, ReadSync] client read done");
-            return result;
+            Console.WriteLine("[CLIENT, ReadSync] client {0} read done", _id);
+            return true;
         }
 
         private Boolean ReadAsync(Byte[] data, out Int32 bytesRead)
@@ -169,34 +179,36 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             //todo: umv make more complicated error handling
             try
             {
-                Console.WriteLine("[CLIENT, ReadAsync] client read started");
+                Console.WriteLine("[CLIENT, ReadAsync] client {0} , read started", _id);
+                //while(_clientSocket.R
+                    //Thread.Sleep(10);
                 _bytesRead = 0;
-
-                for (Int32 attempt = 0; attempt < 64; attempt++)
+                const Int32 readAttempts = 16;
+                for (Int32 attempt = 0; attempt < readAttempts; attempt++)
+                //while(true)
                 {
-                    if (_clientSocket.Available == 0)
-                    {
-                        _clientSocket.Poll(50000, SelectMode.SelectRead);
-                        continue;
-                    }
-                    attempt = 0;
+                    //attempt = 0;
+                    
                     _readCompleted.Reset();
                     Int32 offset = _bytesRead;
                     Int32 size = _clientSocket.Available;
-                    lock (_synch)
-                        _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
-                    _readCompleted.Wait(10);
+                    _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
+                    _readCompleted.Wait(_readTimeout);
                     if (_bytesRead == data.Length)
                         break;
+                    if (attempt > 0 && _bytesRead > offset)
+                        attempt--;
+                    //if (_bytesRead == offset)
+                    //break;
                 }
                 bytesRead = _bytesRead;
-                Console.WriteLine("[CLIENT, ReadAsync] client read done");
+                Console.WriteLine("[CLIENT, ReadAsync] client {0} , read done", _id);
                 return true;
             }
             catch (Exception)
             {
                 bytesRead = 0;
-                Console.WriteLine("[CLIENT, ReadAsync] something goes wrong");
+                Console.WriteLine("[CLIENT, ReadAsync] client {0} , read FAILS", _id);
                 return false;
             }
         }
@@ -208,37 +220,29 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                 // ReSharper disable once NotResolvedInText
                 throw new ArgumentNullException("client");
             _bytesRead += client.EndReceive(result);
+            Console.WriteLine("[Client, ReadAsyncCallback] client {0} , endreceive", _id);
             _readCompleted.Set(); 
         }
 
         private Boolean WriteAsync(Byte[] data)
         {
             //todo: umv make more complicated error handling
-            Console.WriteLine("[Client, WriteAsync] write started");
+            Console.WriteLine("[Client, WriteAsync] client {0} , write started", _id);
             try
             {
-                if (!State)
-                    return false;
                 _bytesSend = 0;
-                while (_bytesSend < data.Length)
-                {
+                //while (_bytesSend < data.Length)
+                //{
                     _writeCompleted.Reset();
-                    //Int32 offset = _bytesSend;
-                    //Int32 size = Math.Min(MaximumPacketSize, data.Length - _bytesSend);
-/*                    lock (_synch)
-                    {
-                        _clientSocket.BeginSend(data, offset, size, SocketFlags.Partial, WriteAsyncCallback,  _clientSocket);
-                    }*/
-                    lock (_synch)
-                        _clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
+                    _clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
                     _writeCompleted.Wait(_writeTimeout);
-                }
-                Console.WriteLine("[Client, WriteAsync] write done, bytes written: " + _bytesSend);
+                //}
+                Console.WriteLine("[Client, WriteAsync] client {0}, write done, bytes written: {1}", _id, _bytesSend);
                 return _bytesSend == data.Length;
             }
             catch (Exception)
             {
-                Console.WriteLine("[Client, WriteAsync] something goes wrong");
+                Console.WriteLine("[Client, WriteAsync] client {0} , write FAILS", _id);
                 return false;
             }
         }
@@ -258,19 +262,23 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             _clientSocket = new Socket(DeviceAddressFamily, DeviceSocketType, DeviceProtocolType);
             _clientSocket.SendTimeout = _writeTimeout;
             _clientSocket.ReceiveTimeout = _readTimeout;
+            _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
+            _clientSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DontFragment, true);
+            //_clientSocket.DontFragment = true;
+            //_clientSocket.NoDelay = true;
+            _clientSocket.Blocking = !_isAsynchronous;
         }
 
         public Boolean State { get; private set; }
 
-        private const Int32 MaximumPacketSize = 1536;
-        private const Int32 DefaultConnectionWaitTimeout = 4000;
-        private const Int32 DefaultReadTimeout = 2000;
-        private const Int32 DefaultWriteTimeout = 2000;
+        private const Int32 DefaultMaximumConnectionWaitTimeout = 4000;
+        private const Int32 DefaultMaximumReadTimeout = 2000;
+        private const Int32 DefaultMaximumWriteTimeout = 2000;
         private const AddressFamily DeviceAddressFamily = AddressFamily.InterNetwork;
         private const SocketType DeviceSocketType = SocketType.Stream;
         private const ProtocolType DeviceProtocolType = ProtocolType.Tcp;
-        //private const Int32 NumberOfRetries = 10;
-
+        private readonly Guid _id;
         private Socket _clientSocket;
         private readonly EndPoint _endPoint;
         private readonly Boolean _isAsynchronous;
@@ -280,7 +288,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
         private readonly ManualResetEventSlim _waitCompleted = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim _readCompleted = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim _writeCompleted = new ManualResetEventSlim(false);
-        private readonly Object _synch = new Object();
         private Int32 _bytesRead;
         private Int32 _bytesSend;
     }
