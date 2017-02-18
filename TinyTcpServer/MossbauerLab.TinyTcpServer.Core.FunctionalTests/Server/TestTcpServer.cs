@@ -140,7 +140,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
                         for (Int32 counter = 0; counter < repetition; counter++)
                         {
                             SingleExchangeWithRandomDataAndCheck(client, dataSize, counter);
-                            //Thread.Sleep(50);
+                            Thread.Sleep(50);
                         }
                         client.Close();
                     }

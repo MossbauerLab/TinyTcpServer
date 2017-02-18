@@ -157,7 +157,9 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     bytesRead += _clientSocket.Receive(data, offset, size, SocketFlags.Partial);
                     if (bytesRead == 0)
                         break;
-                    offset += bytesRead - 1;
+                    //if (bytesRead == offset)
+                        //break;
+                    offset = bytesRead;
                     size = data.Length - bytesRead;
                     if (size == 0)
                         break;
