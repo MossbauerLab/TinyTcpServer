@@ -146,24 +146,30 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 
         public Boolean ReadSync(Byte[] data, out Int32 bytesRead)
         {
-            Boolean result = false;
             Console.WriteLine("[CLIENT, ReadSync] client {0} , read started", _id);
             bytesRead = 0;
-            for (Int32 attemp = 0; attemp < 8; attemp++)
+            Int32 offset = bytesRead;
+            Int32 size = data.Length;
+            while(true)
             {
                 try
                 {
-                    bytesRead = _clientSocket.Receive(data, SocketFlags.None);
-                    if (bytesRead > 0)
-                    {
-                        result = true;
+                    bytesRead += _clientSocket.Receive(data, offset, size, SocketFlags.Partial);
+                    if (bytesRead == 0)
                         break;
-                    }
+                    offset += bytesRead;
+                    size = data.Length - bytesRead;
+                    if (size == 0)
+                        break;
                 }
-                catch (Exception e) { Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}" + _id, e.Message); }
+                catch (Exception e)
+                {
+                    Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}" + _id, e.Message);
+                    return false;
+                }
             }
             Console.WriteLine("[CLIENT, ReadSync] client {0} read done", _id);
-            return result;
+            return true;
         }
 
         private Boolean ReadAsync(Byte[] data, out Int32 bytesRead)
