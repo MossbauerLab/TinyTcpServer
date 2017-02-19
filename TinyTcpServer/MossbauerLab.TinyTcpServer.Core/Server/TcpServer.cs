@@ -318,7 +318,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             try
             {
-                client.Client.Client.Poll(1000, SelectMode.SelectWrite);
+                //client.Client.Client.Poll(100, SelectMode.SelectWrite);
                 //Console.WriteLine("[Server, SendImpl] Write started");
                 lock (client.WriteDataEvent)
                 {
