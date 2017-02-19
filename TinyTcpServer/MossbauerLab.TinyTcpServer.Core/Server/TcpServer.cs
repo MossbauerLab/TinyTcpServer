@@ -188,6 +188,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     lock (_tcpClients)
                     {
                         IList<TcpClientContext> disoonnectedClients = _tcpClients.Where(client => !client.IsProcessing && !CheckClientConnected(client.Client)).ToList();
+                        //todo: umv mark disconnected and check activity during some time ....
                         foreach (TcpClientContext client in disoonnectedClients)
                             _tcpClients.Remove(client);
                     }
