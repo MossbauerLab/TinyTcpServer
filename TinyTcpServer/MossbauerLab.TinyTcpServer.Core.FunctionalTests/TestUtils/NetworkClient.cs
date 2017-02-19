@@ -140,7 +140,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             if(isConnect)
                 client.EndConnect(result);
             else client.EndDisconnect(result);
-                //action(result);
             _waitCompleted.Set();
         }
 
@@ -157,8 +156,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     bytesRead += _clientSocket.Receive(data, offset, size, SocketFlags.Partial);
                     if (bytesRead == 0)
                         break;
-                    //if (bytesRead == offset)
-                        //break;
                     offset = bytesRead;
                     size = data.Length - bytesRead;
                     if (size == 0)
@@ -180,15 +177,10 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             try
             {
                 Console.WriteLine("[CLIENT, ReadAsync] client {0} , read started", _id);
-                //while(_clientSocket.R
-                    //Thread.Sleep(10);
                 _bytesRead = 0;
                 const Int32 readAttempts = 16;
                 for (Int32 attempt = 0; attempt < readAttempts; attempt++)
-                //while(true)
                 {
-                    //attempt = 0;
-                    
                     _readCompleted.Reset();
                     Int32 offset = _bytesRead;
                     Int32 size = _clientSocket.Available;
@@ -198,8 +190,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                         break;
                     if (attempt > 0 && _bytesRead > offset)
                         attempt--;
-                    //if (_bytesRead == offset)
-                    //break;
                 }
                 bytesRead = _bytesRead;
                 Console.WriteLine("[CLIENT, ReadAsync] client {0} , read done", _id);
@@ -231,12 +221,9 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             try
             {
                 _bytesSend = 0;
-                //while (_bytesSend < data.Length)
-                //{
-                    _writeCompleted.Reset();
-                    _clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
-                    _writeCompleted.Wait(_writeTimeout);
-                //}
+                _writeCompleted.Reset();
+                _clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, WriteAsyncCallback, _clientSocket);
+                _writeCompleted.Wait(_writeTimeout);
                 Console.WriteLine("[Client, WriteAsync] client {0}, write done, bytes written: {1}", _id, _bytesSend);
                 return _bytesSend == data.Length;
             }
@@ -265,8 +252,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
             _clientSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DontFragment, true);
-            //_clientSocket.DontFragment = true;
-            //_clientSocket.NoDelay = true;
             _clientSocket.Blocking = !_isAsynchronous;
         }
 

@@ -144,8 +144,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 {
                     _clientConnectingTask = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
                     _clientConnectingTask.Start();
-                    /*if (_tcpClients.Count == 0)
-                        _clientConnectingTask.Wait();*/
                 }
                 
                 if(_tcpClients.Count != 0)
@@ -276,7 +274,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             try
             {
                 //Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
-                
                 for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
                 {
                     NetworkStream netStream = client.Client.GetStream();
@@ -321,12 +318,18 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             try
             {
+                client.Client.Client.Poll(1000, SelectMode.SelectWrite);
                 //Console.WriteLine("[Server, SendImpl] Write started");
-                client.WriteDataEvent.Reset();
-                NetworkStream netStream = client.Client.GetStream();
-                //lock (client.SynchObject)
-                netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
-                client.WriteDataEvent.Wait(_writeTimeout);
+                lock (client.WriteDataEvent)
+                {
+                    client.WriteDataEvent.Reset();
+                    NetworkStream netStream = client.Client.GetStream();
+                    //lock (client.SynchObject)
+                    netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
+                    client.WriteDataEvent.Wait(_writeTimeout);
+                }
+                //client.Client.Client.Poll(_pollTime, SelectMode.SelectWrite);
+                //client.Client.Client.Poll(_pollTime, SelectMode.SelectError);
                 //netStream.FlushAsync(); // net 4.5
                 //Console.WriteLine("[Server, SendImpl] Write done");
             }
@@ -352,12 +355,12 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 ServerCloseTimeout = 2000;
         private const Int32 DefaultClientBufferSize = 16384;
         private const Int32 DefaultChunkSize = 1536;
-        private const Int32 DefaultClientConnectAttempts = 1; //5;
-        private const Int32 DefaultMaximumClientConnectTimeout = 200;  //ms
+        private const Int32 DefaultClientConnectAttempts = 1;
+        private const Int32 DefaultMaximumClientConnectTimeout = 200;    //ms
         private const Int32 DefaultMaximumReadTimeout = 1000;            //ms
-        private const Int32 DefaultMaximumWriteTimeout = 1000;          //ms
-        private const Int32 DefaultPollTime = 1;//1000;             //us
-        private const Int32 DefaultReadAttempts = 4;//25;
+        private const Int32 DefaultMaximumWriteTimeout = 1000;           //ms
+        private const Int32 DefaultPollTime = 1;                         //us
+        private const Int32 DefaultReadAttempts = 2;
         private const Int32 DefaultParallelClientProcessingTasks = 32;
 
         // timeouts
