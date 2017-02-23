@@ -25,5 +25,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Client
         public TcpClient Client { get; private set; }
         public ManualResetEventSlim ReadDataEvent { get; set; }
         public ManualResetEventSlim WriteDataEvent { get; set; }
+        public Boolean Inactive { get; set; }
+        public DateTime InactiveTimeMark { get; set; }
     }
 }
