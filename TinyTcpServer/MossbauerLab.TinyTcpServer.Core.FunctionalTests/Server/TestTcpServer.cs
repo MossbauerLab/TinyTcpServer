@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -121,7 +123,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         {
             Boolean result = _server.Start(LocalIpAddress, ServerPort1);
             Assert.IsTrue(result, "Checking that server was successfully opened");
-            Task[] clientTasks = new Task[numberOfClients];
+            IList<Task> clientTasks = new Task[numberOfClients];
             for (Int32 clientCounter = 0; clientCounter < numberOfClients; clientCounter++)
             {
                 Task clientTask = new Task(() =>
@@ -145,9 +147,11 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
                     }
                 });
                 clientTasks[clientCounter] = clientTask;
-                clientTask.Start();
+                //clientTask.Start();
             }
-            Task.WaitAll(clientTasks, -1);
+            foreach (Task clientTask in clientTasks)
+                clientTask.Start();
+            Task.WaitAll(clientTasks.ToArray(), 60000);
             foreach (Task clientTask in clientTasks)
                 clientTask.Dispose();
             _server.Stop(true);
