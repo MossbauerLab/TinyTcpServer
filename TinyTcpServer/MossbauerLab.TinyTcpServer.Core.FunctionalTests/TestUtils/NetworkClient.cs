@@ -157,7 +157,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     try
                     {
                         bytesRead += _clientSocket.Receive(data, offset, size, SocketFlags.Partial);
-                        if (bytesRead == 0)
+                        if (bytesRead == 0 || bytesRead == offset)
                             break;
                         offset = bytesRead;
                         size = data.Length - bytesRead;
@@ -166,8 +166,8 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}", _id, e.Source);
-                        return false;
+                        Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}", _id, e.GetType());
+                        //return false;
                     }
                 }
                 if(bytesRead > 0)
