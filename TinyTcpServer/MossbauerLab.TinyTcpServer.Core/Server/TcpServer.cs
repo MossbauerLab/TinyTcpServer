@@ -188,8 +188,20 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     lock (_tcpClients)
                     {
                         IList<TcpClientContext> disoonnectedClients = _tcpClients.Where(client => !client.IsProcessing && !CheckClientConnected(client.Client)).ToList();
+                        //todo: umv mark disconnected and check activity during some time ....
                         foreach (TcpClientContext client in disoonnectedClients)
-                            _tcpClients.Remove(client);
+                        {
+                            
+                            client.Inactive = true;
+                            if (client.InactiveTimeMark == default(DateTime))
+                                client.InactiveTimeMark = DateTime.Now;
+                            else if (client.InactiveTimeMark.AddSeconds(DefaultClientInactiveWaitSeconds) < DateTime.Now)
+                            {
+                                client.ReadDataEvent.Dispose();
+                                client.WriteDataEvent.Dispose();
+                                _tcpClients.Remove(client);
+                            }
+                        }
                     }
                 }
             }
@@ -247,6 +259,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             //Console.WriteLine("[Server ProcessClientReceiveSend] IO with client");
             Byte[] receivedData = ReceiveImpl(client);
+            client.Inactive = false;
+            client.InactiveTimeMark = default(DateTime);
             if (receivedData != null)
             {
                 IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>> linkedHandlers =
@@ -362,6 +376,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultPollTime = 1;                         //us
         private const Int32 DefaultReadAttempts = 2;
         private const Int32 DefaultParallelClientProcessingTasks = 32;
+        private const Int32 DefaultClientInactiveWaitSeconds = 45;
 
         // timeouts
         //todo: umv: make adjustable

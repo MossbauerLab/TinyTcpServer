@@ -146,26 +146,32 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
         public Boolean ReadSync(Byte[] data, out Int32 bytesRead)
         {
             Console.WriteLine("[CLIENT, ReadSync] client {0} , read started", _id);
+            const Int32 readAttempts = 5;
             bytesRead = 0;
-            Int32 offset = bytesRead;
-            Int32 size = data.Length;
-            while(true)
+            for (Int32 attempt = 0; attempt < readAttempts; attempt++)
             {
-                try
+                Int32 offset = bytesRead;
+                Int32 size = data.Length;
+                while (true)
                 {
-                    bytesRead += _clientSocket.Receive(data, offset, size, SocketFlags.Partial);
-                    if (bytesRead == 0)
-                        break;
-                    offset = bytesRead;
-                    size = data.Length - bytesRead;
-                    if (size == 0)
-                        break;
+                    try
+                    {
+                        bytesRead += _clientSocket.Receive(data, offset, size, SocketFlags.Partial);
+                        if (bytesRead == 0 || bytesRead == offset)
+                            break;
+                        offset = bytesRead;
+                        size = data.Length - bytesRead;
+                        if (size == 0)
+                            break;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}", _id, e.GetType());
+                        //return false;
+                    }
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine("[CLIENT, ReadSync] client {0} , read FAILS! {1}", _id, e.Source);
-                    return false;
-                }
+                if(bytesRead > 0)
+                    break;
             }
             Console.WriteLine("[CLIENT, ReadSync] client {0} read done", _id);
             return true;
