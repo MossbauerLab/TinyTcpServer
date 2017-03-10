@@ -20,22 +20,14 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             _clientConnectingTask = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
         }
 
+        public Boolean Start()
+        {
+            return StartImpl(false, _ipAddress, _port);
+        }
+
         public Boolean Start(String ipAddress, UInt16 port)
         {
-            try
-            {
-                _interruptRequested = false;
-                AssignIpAddressAndPort(ipAddress, port);
-                _tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
-                _tcpListener.Server.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DontFragment, true);
-                _tcpListener.Start();
-                Task.Factory.StartNew(StartClientProcessing);
-                return _tcpListener.Server.IsBound;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+            return StartImpl(true, ipAddress, port);
         }
 
         public void Stop(Boolean clearHandlers)
@@ -50,7 +42,13 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         public void Restart()
         {
             Stop(false);
-            Start(_ipAddress, _port);
+            Start();
+        }
+
+        public void Restart(String ipAddress, UInt16 port)
+        {
+            Stop(false);
+            Start(ipAddress, port);
         }
 
         public void Dispose()
@@ -97,6 +95,25 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         public Int32 ConnectedClients
         {
             get { return _tcpClients.Count; }
+        }
+
+        private Boolean StartImpl(Boolean assignNewValues, String ipAddress, UInt16 port)
+        {
+            try
+            {
+                _interruptRequested = false;
+                if(assignNewValues)
+                    AssignIpAddressAndPort(ipAddress, port);
+                _tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
+                _tcpListener.Server.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DontFragment, true);
+                _tcpListener.Start();
+                Task.Factory.StartNew(StartClientProcessing);
+                return _tcpListener.Server.IsBound;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private void AssignIpAddressAndPort(String ipAddress, UInt16 port)

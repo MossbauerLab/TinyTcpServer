@@ -128,7 +128,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             {
                 Task clientTask = new Task(() =>
                 {
-                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000, 2000, 2000))
+                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000))
                     {
                         client.Open();
                         ManualResetEventSlim openWaitEvent = new ManualResetEventSlim();
