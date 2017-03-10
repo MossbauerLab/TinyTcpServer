@@ -128,7 +128,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             {
                 Task clientTask = new Task(() =>
                 {
-                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000, 1500, 1500))
+                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000, 2000, 2000))
                     {
                         client.Open();
                         ManualResetEventSlim openWaitEvent = new ManualResetEventSlim();
@@ -151,7 +151,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             }
             foreach (Task clientTask in clientTasks)
                 clientTask.Start();
-            Task.WaitAll(clientTasks.ToArray(), 60000);
+            Task.WaitAll(clientTasks.ToArray(), 120000);
             foreach (Task clientTask in clientTasks)
                 clientTask.Dispose();
             _server.Stop(true);
