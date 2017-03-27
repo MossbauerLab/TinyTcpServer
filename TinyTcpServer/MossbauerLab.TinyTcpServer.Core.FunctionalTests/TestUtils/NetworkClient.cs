@@ -252,7 +252,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 
         private void CreateSocket()
         {
-            _clientSocket = new Socket(DeviceAddressFamily, DeviceSocketType, DeviceProtocolType);
+            _clientSocket = new Socket(AddressFamily, SocketType, ProtocolType);
             _clientSocket.SendTimeout = _writeTimeout;
             _clientSocket.ReceiveTimeout = _readTimeout;
             _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
@@ -266,9 +266,9 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
         private const Int32 DefaultMaximumConnectionWaitTimeout = 4000;
         private const Int32 DefaultMaximumReadTimeout = 2000;
         private const Int32 DefaultMaximumWriteTimeout = 2000;
-        private const AddressFamily DeviceAddressFamily = AddressFamily.InterNetwork;
-        private const SocketType DeviceSocketType = SocketType.Stream;
-        private const ProtocolType DeviceProtocolType = ProtocolType.Tcp;
+        private const AddressFamily AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork;
+        private const SocketType SocketType = System.Net.Sockets.SocketType.Stream;
+        private const ProtocolType ProtocolType = System.Net.Sockets.ProtocolType.Tcp;
         private readonly Guid _id;
         private Socket _clientSocket;
         private readonly EndPoint _endPoint;
