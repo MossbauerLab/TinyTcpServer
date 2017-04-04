@@ -184,7 +184,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             {
                 Console.WriteLine("[CLIENT, ReadAsync] client {0} , read started", _id);
                 _bytesRead = 0;
-                const Int32 readAttempts = 16;
+                const Int32 readAttempts = 6;
                 for (Int32 attempt = 0; attempt < readAttempts; attempt++)
                 {
                     _readCompleted.Reset();
@@ -192,7 +192,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     Int32 size = _clientSocket.Available;
                     _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
                     _readCompleted.Wait(_readTimeout);
-                    if (_bytesRead == data.Length)
+                    if (_bytesRead == data.Length || (_bytesRead > 0 && data.Length < _clientSocket.ReceiveBufferSize))
                         break;
                     if (attempt > 0 && _bytesRead > offset)
                         attempt--;
