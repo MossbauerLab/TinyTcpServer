@@ -5,6 +5,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 {
     public interface ITcpServer
     {
+        Boolean Start();
         Boolean Start(String ipAddress, UInt16 port);
         void Stop(Boolean clearHandlers);
         void Restart();
