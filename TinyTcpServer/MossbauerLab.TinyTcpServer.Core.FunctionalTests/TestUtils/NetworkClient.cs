@@ -192,7 +192,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     Int32 size = _clientSocket.Available;
                     _clientSocket.BeginReceive(data, offset, size, SocketFlags.Partial, ReadAsyncCallback, _clientSocket);
                     _readCompleted.Wait(_readTimeout);
-                    if (_bytesRead == data.Length)
+                    if (_bytesRead == data.Length || (_bytesRead > 0 && data.Length < 3 * _clientSocket.ReceiveBufferSize / 4))
                         break;
                     if (attempt > 0 && _bytesRead > offset)
                         attempt--;

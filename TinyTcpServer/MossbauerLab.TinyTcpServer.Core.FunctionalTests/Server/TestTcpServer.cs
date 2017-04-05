@@ -151,7 +151,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             }
             foreach (Task clientTask in clientTasks)
                 clientTask.Start();
-            Task.WaitAll(clientTasks.ToArray(), 120000);
+            Task.WaitAll(clientTasks.ToArray(), 180000);
             foreach (Task clientTask in clientTasks)
                 clientTask.Dispose();
             _server.Stop(true);
