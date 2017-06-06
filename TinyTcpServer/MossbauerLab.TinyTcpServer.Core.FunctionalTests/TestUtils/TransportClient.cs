@@ -33,13 +33,16 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 
         public Boolean Read(Byte[] data, out Int32 bytesRead)
         {
-            bytesRead = 0;
-            return false;
+            if (_isAsync)
+                return ReadAsync(data, out bytesRead);
+            return ReadSync(data, out bytesRead);
         }
 
         public Boolean Write(Byte[] data)
         {
-            return false;
+            if (_isAsync)
+                return WriteAsync(data);
+            return WriteSync(data);
         }
 
         private void OpenSync()
@@ -73,6 +76,59 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             _connectCompleted.Set();
         }
 
+        private Boolean WriteSync(Byte[] data)
+        {
+            NetworkStream stream = _client.GetStream();
+            try
+            {
+                stream.Write(data, 0, data.Length);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        private Boolean WriteAsync(Byte[] data)
+        {
+            NetworkStream stream = _client.GetStream();
+            try
+            {
+                _writeCompleted.Reset();
+                stream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, _client);
+                _writeCompleted.Wait(1000);
+                    //Write(data, 0, data.Length);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        public void WriteAsyncCallback(IAsyncResult result)
+        {
+            TcpClient client = (result.AsyncState as TcpClient);
+            if (client == null)
+                // ReSharper disable once NotResolvedInText
+                throw new ArgumentNullException("client");
+            client.GetStream().EndWrite(result);
+            _writeCompleted.Set();
+        }
+
+        private Boolean ReadSync(Byte[] data, out Int32 bytesRead)
+        {
+            bytesRead = 0;
+            return false;
+        }
+
+        private Boolean ReadAsync(Byte[] data, out Int32 bytesRead)
+        {
+            bytesRead = 0;
+            return false;
+        }
+
         private const Int32 DefaultConnectTimeout = 1000;
 
         private Boolean _isAsync;
@@ -81,5 +137,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
         private readonly TcpClient _client;
 
         private readonly ManualResetEventSlim _connectCompleted = new ManualResetEventSlim(false);
+        private readonly ManualResetEventSlim _readCompleted = new ManualResetEventSlim(false);
+        private readonly ManualResetEventSlim _writeCompleted = new ManualResetEventSlim(false);
     }
 }
