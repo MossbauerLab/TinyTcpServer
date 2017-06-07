@@ -393,7 +393,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultPollTime = 1;                         //us
         private const Int32 DefaultReadAttempts = 2;
         private const Int32 DefaultParallelClientProcessingTasks = 32;
-        private const Int32 DefaultClientInactiveWaitSeconds = 45;
+        private const Int32 DefaultClientInactiveWaitSeconds = 120;
 
         // timeouts
         //todo: umv: make adjustable

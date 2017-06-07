@@ -47,7 +47,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1024, 2, true)]
         [TestCase(1024, 16, true)]
         [TestCase(1024, 128, true)]
-        //[TestCase(1024, 666, true)] // too long
+        [TestCase(1024, 666, true)] // too long
         [TestCase(8192, 32, true)]
         [TestCase(16384, 32, true)]
         [TestCase(32768, 20, true)]
@@ -58,7 +58,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1024, 2, false)]
         [TestCase(1024, 16, false)]
         [TestCase(1024, 128, false)]
-        //[TestCase(1024, 1024, false)] // too long
+        [TestCase(1024, 1024, false)] // too long
         [TestCase(8192, 32, false)]
         [TestCase(16384, 32, false)]
         [TestCase(32768, 20, false)]
@@ -148,7 +148,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
                 Task clientTask = new Task(() =>
                 {
                     //using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000))
-                    using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort1))
+                    using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort1, 3500, 1500))
                     {
                         client.Open();
                         ManualResetEventSlim openWaitEvent = new ManualResetEventSlim();
@@ -171,7 +171,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             }
             foreach (Task clientTask in clientTasks)
                 clientTask.Start();
-            Task.WaitAll(clientTasks.ToArray(), 180000);
+            Task.WaitAll(clientTasks.ToArray(), 200000);
             foreach (Task clientTask in clientTasks)
                 clientTask.Dispose();
             _server.Stop(true);
