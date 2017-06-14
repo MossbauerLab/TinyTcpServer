@@ -80,15 +80,16 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
         public void SendData(TcpClientHandlerInfo clientHandlerInfo, Byte[] data)
         {
-            IList<TcpClientContext> selectedClients = _tcpClients.Where(item =>
+            IList<TcpClientContext> selectedClients;
+            lock (_tcpClients)
             {
-                return TcpClientHandlerSelector.Select(clientHandlerInfo, item);
-            }).ToList();
+                selectedClients = _tcpClients.Where(item => TcpClientHandlerSelector.Select(clientHandlerInfo, item)).ToList();
+            }
 
-            for (Int32 clientCounter = 0; clientCounter < selectedClients.Count; clientCounter++)
+            foreach (TcpClientContext client in selectedClients)
             {
-                TcpClientContext client = selectedClients[clientCounter];
-                Task.Factory.StartNew(() => SendImpl(client, data));
+                TcpClientContext clientCopy = client;
+                Task.Factory.StartNew(() => SendImpl(clientCopy, data));
             }
         }
 
@@ -135,13 +136,16 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
         private void ReleaseClients()
         {
-            foreach (TcpClientContext tcpClient in _tcpClients)
+            lock (_tcpClients)
             {
-                tcpClient.Client.GetStream().Flush();
-                tcpClient.Client.GetStream().Close();
-                tcpClient.Client.Client.Close();
+                foreach (TcpClientContext tcpClient in _tcpClients)
+                {
+                    tcpClient.Client.GetStream().Flush();
+                    tcpClient.Client.GetStream().Close();
+                    tcpClient.Client.Client.Close();
+                }
+                _tcpClients.Clear();
             }
-            _tcpClients.Clear();
         }
 
         private void ReleaseClientsHandlers()
@@ -305,15 +309,17 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             try
             {
                 //Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
-                for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
-                {
+                //for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
+                //{
                     NetworkStream netStream = client.Client.GetStream();
+                netStream.ReadTimeout = DefaultMaximumReadTimeout;
                     Boolean result = netStream.DataAvailable;
                     while (result)
                     {
                         client.ReadDataEvent.Reset();
-                        if (buffer.Length < client.BytesRead + DefaultChunkSize)
-                            Array.Resize(ref buffer, buffer.Length + 10 * DefaultChunkSize);
+                        Array.Resize(ref buffer, buffer.Length + DefaultChunkSize);
+                        //if (buffer.Length < client.BytesRead + DefaultChunkSize)
+                            //Array.Resize(ref buffer, buffer.Length + 10 * DefaultChunkSize);
                         Int32 offset = client.BytesRead;
                         Int32 size = DefaultChunkSize;
                         //lock (client.SynchObject)
@@ -321,8 +327,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                         client.ReadDataEvent.Wait(_readTimeout);
                         result = netStream.DataAvailable;
                     }
-                    client.Client.Client.Poll(_pollTime,  SelectMode.SelectRead);
-                }
+                    // client.Client.Client.Poll(_pollTime,  SelectMode.SelectRead);
+                //}
                 Array.Resize(ref buffer, client.BytesRead);
                 //Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
             }
@@ -341,7 +347,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             TcpClientContext client = state.AsyncState as TcpClientContext;
             if(client == null)
                 throw new ApplicationException("state can't be null");
-            client.BytesRead +=client.Client.GetStream().EndRead(state);
+            client.BytesRead += client.Client.GetStream().EndRead(state);
             client.ReadDataEvent.Set();
         }
 
@@ -355,6 +361,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 {
                     client.WriteDataEvent.Reset();
                     NetworkStream netStream = client.Client.GetStream();
+                    netStream.WriteTimeout = DefaultMaximumWriteTimeout;
                     //lock (client.SynchObject)
                     netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
                     client.WriteDataEvent.Wait(_writeTimeout);
@@ -385,14 +392,14 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultServerPort = 16000;
         private const Int32 ServerCloseTimeout = 2000;
         private const Int32 DefaultClientBufferSize = 16384;
-        private const Int32 DefaultChunkSize = 1536;
+        private const Int32 DefaultChunkSize = 8192;
         private const Int32 DefaultClientConnectAttempts = 1;
         private const Int32 DefaultMaximumClientConnectTimeout = 200;    //ms
         private const Int32 DefaultMaximumReadTimeout = 1000;            //ms
         private const Int32 DefaultMaximumWriteTimeout = 1000;           //ms
-        private const Int32 DefaultPollTime = 1;                         //us
+        //private const Int32 DefaultPollTime = 1;                         //us
         private const Int32 DefaultReadAttempts = 2;
-        private const Int32 DefaultParallelClientProcessingTasks = 32;
+        private const Int32 DefaultParallelClientProcessingTasks = 128;
         private const Int32 DefaultClientInactiveWaitSeconds = 120;
 
         // timeouts
@@ -400,7 +407,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private Int32 _clientConnectTimeout = DefaultMaximumClientConnectTimeout;
         private Int32 _readTimeout = DefaultMaximumReadTimeout;
         private Int32 _writeTimeout = DefaultMaximumWriteTimeout;
-        private Int32 _pollTime = DefaultPollTime;
+        //private Int32 _pollTime = DefaultPollTime;
         // other parameters
         private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;
         private Int32 _clientReadAttempts = DefaultReadAttempts;

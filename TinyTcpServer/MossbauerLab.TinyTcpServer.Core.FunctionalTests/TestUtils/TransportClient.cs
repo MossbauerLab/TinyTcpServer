@@ -99,7 +99,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                 stream.Write(data, 0, data.Length);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
                 return false;
             }
