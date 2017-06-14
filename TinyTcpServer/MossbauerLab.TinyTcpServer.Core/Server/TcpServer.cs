@@ -249,6 +249,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 TcpClient client = _tcpListener.EndAcceptTcpClient(state);
                 if (client.Connected)
                 {
+                    client.NoDelay = true;
                     lock(_tcpClients)
                         _tcpClients.Add(new TcpClientContext(client));
                 }
@@ -309,10 +310,10 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             try
             {
                 //Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
-                //for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
-                //{
                     NetworkStream netStream = client.Client.GetStream();
                 netStream.ReadTimeout = DefaultMaximumReadTimeout;
+                for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
+                {
                     Boolean result = netStream.DataAvailable;
                     while (result)
                     {
@@ -328,7 +329,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                         result = netStream.DataAvailable;
                     }
                     // client.Client.Client.Poll(_pollTime,  SelectMode.SelectRead);
-                //}
+                }
                 Array.Resize(ref buffer, client.BytesRead);
                 //Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
             }
@@ -357,6 +358,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             {
                 //client.Client.Client.Poll(100, SelectMode.SelectWrite);
                 //Console.WriteLine("[Server, SendImpl] Write started");
+                Console.WriteLine("[Server, SendImpl] Data for client: " + data.Length + " bytes");
                 lock (client.WriteDataEvent)
                 {
                     client.WriteDataEvent.Reset();
@@ -398,7 +400,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultMaximumReadTimeout = 1000;            //ms
         private const Int32 DefaultMaximumWriteTimeout = 1000;           //ms
         //private const Int32 DefaultPollTime = 1;                         //us
-        private const Int32 DefaultReadAttempts = 2;
+        private const Int32 DefaultReadAttempts = 8;
         private const Int32 DefaultParallelClientProcessingTasks = 128;
         private const Int32 DefaultClientInactiveWaitSeconds = 120;
 
