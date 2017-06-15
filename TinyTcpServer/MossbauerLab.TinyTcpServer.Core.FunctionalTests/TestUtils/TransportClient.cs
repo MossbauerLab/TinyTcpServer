@@ -169,7 +169,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     _readCompleted.Reset();
                     stream.BeginRead(data, _bytesRead, data.Length - _bytesRead, ReadAsyncCallback, _client);
                     _readCompleted.Wait(_readTimeout);
-                    if (_bytesRead == data.Length || _bytesRead < _client.ReceiveBufferSize * 3 / 4)
+                    if (_bytesRead == data.Length || _bytesRead < _client.ReceiveBufferSize * 7 / 8)
                         break;
                 } 
                 bytesRead = _bytesRead;
