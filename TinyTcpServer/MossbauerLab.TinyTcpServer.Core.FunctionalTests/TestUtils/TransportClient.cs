@@ -6,8 +6,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
 {
     public class TransportClient : IDisposable
     {
-        public TransportClient(Boolean isAsync, String server, UInt16 port, 
-                               Int32 readTimeout = DefaultReadTimeout, Int32 writeTimeout = DefaultWriteTimeout)
+        public TransportClient(Boolean isAsync, String server, UInt16 port,  Int32 readTimeout = DefaultReadTimeout, Int32 writeTimeout = DefaultWriteTimeout)
         {
             Init(server, port, isAsync);
             _client = new TcpClient();
@@ -99,7 +98,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                 stream.Write(data, 0, data.Length);
                 return true;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 return false;
             }
@@ -110,12 +109,12 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             NetworkStream stream = _client.GetStream();
             try
             {
-                _writeCompleted.Reset();
-                stream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, _client);
-                _writeCompleted.Wait(_writeTimeout);
+                    _writeCompleted.Reset();
+                    stream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, _client);
+                    _writeCompleted.Wait(_writeTimeout);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -136,8 +135,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             bytesRead = 0;
             _bytesRead = 0;
             NetworkStream stream = _client.GetStream();
-            //try
-           // {
             Int32 errorsNumber = 0;
             for (Int32 retryNumber = 0; retryNumber < ReadRetriesNumber; retryNumber++)
             {
@@ -149,10 +146,8 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                     if (bytesRead == data.Length || bytesRead < _client.ReceiveBufferSize)
                         return true;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    if (!_client.Connected)
-                        Console.WriteLine("OOOPS!!!!! CONNECTION CLOSED");
                     errorsNumber++;
                     if (errorsNumber > ReadRetriesNumber / 2 + 1)
                         return false;
@@ -168,13 +163,19 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             NetworkStream stream = _client.GetStream();
             try
             {
-                _readCompleted.Reset();
-                stream.BeginRead(data, 0, data.Length, ReadAsyncCallback, _client);
-                _readCompleted.Wait(_readTimeout);
+                _bytesRead = 0;
+                for (Int32 attempt = 0; attempt < ReadRetriesNumber; attempt++)
+                {
+                    _readCompleted.Reset();
+                    stream.BeginRead(data, _bytesRead, data.Length - _bytesRead, ReadAsyncCallback, _client);
+                    _readCompleted.Wait(_readTimeout);
+                    if (_bytesRead == data.Length || _bytesRead < _client.ReceiveBufferSize * 3 / 4)
+                        break;
+                } 
                 bytesRead = _bytesRead;
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -186,7 +187,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
             if (client == null)
                 // ReSharper disable once NotResolvedInText
                 throw new ArgumentNullException("client");
-            _bytesRead = client.GetStream().EndRead(result);
+            _bytesRead += client.GetStream().EndRead(result);
             _readCompleted.Set();
         }
 
