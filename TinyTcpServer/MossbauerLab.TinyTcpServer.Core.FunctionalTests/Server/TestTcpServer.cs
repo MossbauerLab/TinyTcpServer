@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -47,7 +46,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1024, 2, true)]
         [TestCase(1024, 16, true)]
         [TestCase(1024, 128, true)]
-        //[TestCase(1024, 666, true)] // too long
+        [TestCase(1024, 666, true)] // too long
         [TestCase(8192, 32, true)]
         [TestCase(16384, 32, true)]
         [TestCase(32768, 20, true)]
@@ -58,7 +57,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1024, 2, false)]
         [TestCase(1024, 16, false)]
         [TestCase(1024, 128, false)]
-        //[TestCase(1024, 1024, false)] // too long
+        [TestCase(1024, 1024, false)] // too long
         [TestCase(8192, 32, false)]
         [TestCase(16384, 32, false)]
         [TestCase(32768, 20, false)]
@@ -67,11 +66,10 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1048576, 2, false)]
         public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
-            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 1000, 500, 250))
+            Boolean result = _server.Start(LocalIpAddress, ServerPort1);
+            Assert.IsTrue(result, "Checking that server was successfully opened");
+            using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort1))
             {
-
-                Boolean result = _server.Start(LocalIpAddress, ServerPort1);
-                Assert.IsTrue(result, "Checking that server was successfully opened");
                 client.Open();
                 ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
                 client.Close();
@@ -93,16 +91,16 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(40000, 10, 100, 150, false)]
         public void TestServerExchangeWithPausesAndOneClient(Int32 dataSize, Int32 repetition, Int32 minPauseTime, Int32 maxPauseTime, Boolean isClientAsync)
         {
-            using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 1000, 500, 250))
+            Boolean result = _server.Start(LocalIpAddress, ServerPort1);
+            Assert.IsTrue(result, "Checking that server was successfully opened");
+            using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort1))
             {
-
-                Boolean result = _server.Start(LocalIpAddress, ServerPort1);
-                Assert.IsTrue(result, "Checking that server was successfully opened");
                 client.Open();
                 ExchangeWithRandomDataAndCheck(client, dataSize, repetition, minPauseTime, maxPauseTime);
                 client.Close();
             }
             _server.Stop(true);
+
         }
 
         [TestCase(2, 1024, 16, true)]
@@ -128,7 +126,8 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             {
                 Task clientTask = new Task(() =>
                 {
-                    using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000))
+                    //using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 2000))
+                    using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort1, 3500, 1500))
                     {
                         client.Open();
                         ManualResetEventSlim openWaitEvent = new ManualResetEventSlim();
@@ -151,7 +150,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             }
             foreach (Task clientTask in clientTasks)
                 clientTask.Start();
-            Task.WaitAll(clientTasks.ToArray(), 120000);
+            Task.WaitAll(clientTasks.ToArray(), 200000);
             foreach (Task clientTask in clientTasks)
                 clientTask.Dispose();
             _server.Stop(true);
@@ -166,7 +165,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             return randomData;
         }
 
-        private void ExchangeWithRandomDataAndCheck(NetworkClient client, Int32 dataSize, Int32 repetition, Int32 pauseMin = 0, Int32 pauseMax = 0)
+        private void ExchangeWithRandomDataAndCheck(TransportClient client, Int32 dataSize, Int32 repetition, Int32 pauseMin = 0, Int32 pauseMax = 0)
         {
             Random pauseRandomGenerator = new Random();
             for (Int32 repetitionCounter = 0; repetitionCounter < repetition; repetitionCounter++)
@@ -180,7 +179,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             }
         }
 
-        private void SingleExchangeWithRandomDataAndCheck(NetworkClient client, Int32 dataSize, Int32 cycle)
+        private void SingleExchangeWithRandomDataAndCheck(TransportClient client, Int32 dataSize, Int32 cycle)
         {
             Byte[] expectedData = CreateRandomData(dataSize);
             Byte[] actualData = new Byte[expectedData.Length];

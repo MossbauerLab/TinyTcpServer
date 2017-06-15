@@ -45,9 +45,9 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\TestTcpServer.cs" />
-    <Compile Include="TestUtils\NetworkClient.cs" />
     <Compile Include="TestUtils\EchoTcpClientHandler.cs" />
     <Compile Include="TestUtils\TimeDelay.cs" />
+    <Compile Include="TestUtils\TransportClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
