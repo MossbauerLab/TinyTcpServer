@@ -66,15 +66,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1048576, 2, false)]
         public void TestServerExchangeWithOneClient(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
-            /*using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 1000, 500, 250))
-            {
-
-                Boolean result = _server.Start(LocalIpAddress, ServerPort1);
-                Assert.IsTrue(result, "Checking that server was successfully opened");
-                client.Open();
-                ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
-                client.Close();
-            }*/
             Boolean result = _server.Start(LocalIpAddress, ServerPort1);
             Assert.IsTrue(result, "Checking that server was successfully opened");
             using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort1))
@@ -100,17 +91,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(40000, 10, 100, 150, false)]
         public void TestServerExchangeWithPausesAndOneClient(Int32 dataSize, Int32 repetition, Int32 minPauseTime, Int32 maxPauseTime, Boolean isClientAsync)
         {
-            /*using (NetworkClient client = new NetworkClient(new IPEndPoint(IPAddress.Parse(LocalIpAddress), ServerPort1), isClientAsync, 1000, 500, 250))
-            {
-
-                Boolean result = _server.Start(LocalIpAddress, ServerPort1);
-                Assert.IsTrue(result, "Checking that server was successfully opened");
-                client.Open();
-                ExchangeWithRandomDataAndCheck(client, dataSize, repetition, minPauseTime, maxPauseTime);
-                client.Close();
-            }
-            _server.Stop(true);*/
-
             Boolean result = _server.Start(LocalIpAddress, ServerPort1);
             Assert.IsTrue(result, "Checking that server was successfully opened");
             using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort1))
@@ -185,20 +165,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             return randomData;
         }
 
-        private void ExchangeWithRandomDataAndCheck(NetworkClient client, Int32 dataSize, Int32 repetition, Int32 pauseMin = 0, Int32 pauseMax = 0)
-        {
-            Random pauseRandomGenerator = new Random();
-            for (Int32 repetitionCounter = 0; repetitionCounter < repetition; repetitionCounter++)
-            {
-                SingleExchangeWithRandomDataAndCheck(client, dataSize, repetitionCounter);
-                if (pauseMin > 0 && pauseMax > 0)
-                {
-                    Int32 pause = pauseRandomGenerator.Next(pauseMin, pauseMax);
-                    TimeDelay.Delay(pause);
-                }
-            }
-        }
-
         private void ExchangeWithRandomDataAndCheck(TransportClient client, Int32 dataSize, Int32 repetition, Int32 pauseMin = 0, Int32 pauseMax = 0)
         {
             Random pauseRandomGenerator = new Random();
@@ -214,20 +180,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         }
 
         private void SingleExchangeWithRandomDataAndCheck(TransportClient client, Int32 dataSize, Int32 cycle)
-        {
-            Byte[] expectedData = CreateRandomData(dataSize);
-            Byte[] actualData = new Byte[expectedData.Length];
-            Int32 bytesReceived;
-            Boolean result = client.Write(expectedData);
-            Assert.IsTrue(result, String.Format("Checking that client successfully write data, at exchange cycle {0}", cycle + 1));
-            result = client.Read(actualData, out bytesReceived);
-            Assert.IsTrue(result, String.Format("Checking that read operation was performed successfully at exchange cycle {0}", cycle + 1));
-            Assert.AreEqual(expectedData.Length, bytesReceived, String.Format("Chechking that client received expected number of bytes at exchange cycle {0}", cycle + 1));
-            for (Int32 counter = 0; counter < expectedData.Length; counter++)
-                Assert.AreEqual(expectedData[counter], actualData[counter], String.Format("Checking that arrays bytes are equals at index {0}, at exchange cycle {1}", counter, cycle + 1));
-        }
-
-        private void SingleExchangeWithRandomDataAndCheck(NetworkClient client, Int32 dataSize, Int32 cycle)
         {
             Byte[] expectedData = CreateRandomData(dataSize);
             Byte[] actualData = new Byte[expectedData.Length];
