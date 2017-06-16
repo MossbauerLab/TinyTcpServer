@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using log4net;
+using log4net.Config;
 using NUnit.Framework;
 using MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils;
 using MossbauerLab.TinyTcpServer.Core.Handlers;
@@ -13,13 +15,19 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
     [TestFixture]
     public class TestTcpServer
     {
+        public TestTcpServer()
+        {
+            XmlConfigurator.Configure();
+            _logger = LogManager.GetLogger(typeof(TestTcpServer));
+        }
+
         [SetUp]
         public void SetUp()
         {
             if (_server != null)
                 _server.Stop(true);
             _server = null;
-            _server = new TcpServer();
+            _server = new TcpServer("127.0.0.1", 6666, _logger, true);
             _server.AddHandler(_clientHandlerInfo, EchoTcpClientHandler.Handle);
         }
 
@@ -198,6 +206,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         private const Int32 ServerPort2 = 12345;
 
         private ITcpServer _server;
+        private readonly ILog _logger;
         private readonly TcpClientHandlerInfo _clientHandlerInfo = new TcpClientHandlerInfo(Guid.NewGuid());
     }
 }

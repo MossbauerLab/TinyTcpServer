@@ -5,6 +5,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using log4net;
+using log4net.Appender;
+using log4net.Core;
+using log4net.Repository.Hierarchy;
 using MossbauerLab.TinyTcpServer.Core.Client;
 using MossbauerLab.TinyTcpServer.Core.Handlers;
 using MossbauerLab.TinyTcpServer.Core.Handlers.Utils;
@@ -13,11 +17,27 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 {
     public class TcpServer : ITcpServer, IDisposable
     {
-        public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort)
+        public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort, ILog logger = null, Boolean debug = false)
         {
             AssignIpAddressAndPort(ipAddress, port);
             _clientProcessingTasks = new Task[_parallelClientProcessingTasks];
             _clientConnectingTask = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
+            if (logger != null)
+                _logger = logger;
+            else
+            {
+                Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository();
+                Logger loggerImpl = hierarchy.LoggerFactory.CreateLogger(hierarchy, "Logger4Tests");
+                loggerImpl.Hierarchy = hierarchy;
+                loggerImpl.AddAppender(new RollingFileAppender());
+                loggerImpl.AddAppender(new ColoredConsoleAppender());
+                loggerImpl.Repository.Configured = true;
+
+                hierarchy.Threshold = debug ? Level.Debug : Level.Info;
+                loggerImpl.Level = Level.All;
+
+                _logger = new LogImpl(loggerImpl);
+            }
         }
 
         public Boolean Start()
@@ -145,6 +165,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     tcpClient.Client.Client.Close();
                 }
                 _tcpClients.Clear();
+                _logger.Debug("All clients were closed and resources were released");
             }
         }
 
@@ -196,7 +217,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                                 if (freeTaskIndex >= 0)
                                 {
                                     _tcpClients[clientCounter].IsProcessing = true;
-                                    //Console.WriteLine("[Server, StartClientProcessing] Starting task 4 IO with client");
                                     _clientProcessingTasks[freeTaskIndex] = new Task(() => ProcessClientReceiveSend(client), new CancellationToken(_interruptRequested));
                                     _clientProcessingTasks[freeTaskIndex].Start();
                                 }
@@ -220,6 +240,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                             {
                                 client.ReadDataEvent.Dispose();
                                 client.WriteDataEvent.Dispose();
+                                _logger.DebugFormat(ClientRemoveMessagedTemplate, client.Id, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
                                 _tcpClients.Remove(client);
                             }
                         }
@@ -230,7 +251,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
         private void ClientConnectProcessing()
         {
-            //Console.WriteLine("[Server, ClientConnectProcessing]waiting 4 clients");
             Int32 clientsNumber = _tcpClients.Count;
             for (Int32 attempt = 0; attempt < _clientConnectAttempts; attempt++)
             {
@@ -250,13 +270,16 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 if (client.Connected)
                 {
                     client.NoDelay = true;
+                    TcpClientContext clientContext = new TcpClientContext(client);
                     lock(_tcpClients)
-                        _tcpClients.Add(new TcpClientContext(client));
+                        _tcpClients.Add(clientContext);
+                    _logger.DebugFormat(ClientConnectedMessagedTemplate, clientContext.Id, ((IPEndPoint)client.Client.LocalEndPoint).Address);
                 }
             }
             catch (Exception)
             {
                 //todo: umv: probably we should notify i.e. via logs
+                _logger.Error("An error occured during client connection");
             }
             _clientConnectEvent.Set();
         }
@@ -273,13 +296,13 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             }
             catch (Exception)
             {
+                _logger.Error("An error occured during check client state");
                 return false;
             }
         }
 
         private void ProcessClientReceiveSend(TcpClientContext client)
         {
-            //Console.WriteLine("[Server ProcessClientReceiveSend] IO with client");
             Byte[] receivedData = ReceiveImpl(client);
             client.Inactive = false;
             client.InactiveTimeMark = default(DateTime);
@@ -291,7 +314,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     //todo: umv: add special selection for AnyPort and AnyIp
                     return TcpClientHandlerSelector.Select(item.Item1, client);
                 }).ToList();
-                //Console.WriteLine("[Server ProcessClientReceiveSend] found {0} handlers", linkedHandlers.Count);
                 foreach (Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>> handler in linkedHandlers)
                 {
                     Byte[] dataForSend = handler.Item2(receivedData, handler.Item1);
@@ -309,8 +331,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
             try
             {
-                //Console.WriteLine("[Server ReceiveImpl] waiting 4 data");
-                    NetworkStream netStream = client.Client.GetStream();
+                NetworkStream netStream = client.Client.GetStream();
                 netStream.ReadTimeout = DefaultMaximumReadTimeout;
                 for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
                 {
@@ -319,25 +340,22 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     {
                         client.ReadDataEvent.Reset();
                         Array.Resize(ref buffer, buffer.Length + DefaultChunkSize);
-                        //if (buffer.Length < client.BytesRead + DefaultChunkSize)
-                            //Array.Resize(ref buffer, buffer.Length + 10 * DefaultChunkSize);
                         Int32 offset = client.BytesRead;
                         Int32 size = DefaultChunkSize;
-                        //lock (client.SynchObject)
                         netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
                         client.ReadDataEvent.Wait(_readTimeout);
                         result = netStream.DataAvailable;
                     }
-                    // client.Client.Client.Poll(_pollTime,  SelectMode.SelectRead);
                 }
                 Array.Resize(ref buffer, client.BytesRead);
-                //Console.WriteLine("[SERVER, ReceiveImpl] Read bytes: " + client.BytesRead);
+                if(client.BytesRead > 0)
+                    _logger.DebugFormat(ReceivedDataMessageTemplate, client.BytesRead, client.Id, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
             }
             catch (Exception)
             {
                 // todo: umv: add exception handling ....
                 buffer = null;
-                //Console.WriteLine("Something goes wrong [read]");
+                _logger.Error("Error occured during data read");
             }
 
             return buffer;
@@ -356,27 +374,21 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             try
             {
-                //client.Client.Client.Poll(100, SelectMode.SelectWrite);
-                //Console.WriteLine("[Server, SendImpl] Write started");
-                Console.WriteLine("[Server, SendImpl] Data for client: " + data.Length + " bytes");
+                _logger.DebugFormat(SendDataMessageTemplate, data.Length, client.Id, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
                 lock (client.WriteDataEvent)
                 {
+                    
                     client.WriteDataEvent.Reset();
                     NetworkStream netStream = client.Client.GetStream();
                     netStream.WriteTimeout = DefaultMaximumWriteTimeout;
-                    //lock (client.SynchObject)
                     netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
                     client.WriteDataEvent.Wait(_writeTimeout);
                 }
-                //client.Client.Client.Poll(_pollTime, SelectMode.SelectWrite);
-                //client.Client.Client.Poll(_pollTime, SelectMode.SelectError);
-                //netStream.FlushAsync(); // net 4.5
-                //Console.WriteLine("[Server, SendImpl] Write done");
             }
             catch (Exception)
             {
                 //todo: umv: add error handling
-                //Console.WriteLine("[Server, SendImpl] Something goes wrong");
+                _logger.Error("An error occured during send data to client");
             }
         }
 
@@ -386,7 +398,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             if (client == null)
                 throw new ApplicationException("state can't be null");
             client.Client.GetStream().EndWrite(state);
-            //Console.WriteLine("[Server, WriteAsyncCallback] Write done!");
             client.WriteDataEvent.Set();
         }
 
@@ -399,17 +410,20 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultMaximumClientConnectTimeout = 200;    //ms
         private const Int32 DefaultMaximumReadTimeout = 1000;            //ms
         private const Int32 DefaultMaximumWriteTimeout = 1000;           //ms
-        //private const Int32 DefaultPollTime = 1;                         //us
         private const Int32 DefaultReadAttempts = 8;
         private const Int32 DefaultParallelClientProcessingTasks = 128;
         private const Int32 DefaultClientInactiveWaitSeconds = 120;
+
+        private const String ClientRemoveMessagedTemplate = "Client {0} connected from {1} ip was removed due to no activity";
+        private const String ClientConnectedMessagedTemplate = "Client {0} connected from {1} ip address";
+        private const String ReceivedDataMessageTemplate = "Received {0} bytes from client {1} {2}";
+        private const String SendDataMessageTemplate = "There are {0} bytes was sent to client {1} {2}";
 
         // timeouts
         //todo: umv: make adjustable
         private Int32 _clientConnectTimeout = DefaultMaximumClientConnectTimeout;
         private Int32 _readTimeout = DefaultMaximumReadTimeout;
         private Int32 _writeTimeout = DefaultMaximumWriteTimeout;
-        //private Int32 _pollTime = DefaultPollTime;
         // other parameters
         private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;
         private Int32 _clientReadAttempts = DefaultReadAttempts;
@@ -418,13 +432,14 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         // threading things
         private readonly ManualResetEventSlim _clientConnectEvent = new ManualResetEventSlim(false, 100);
         private readonly IList<Task> _clientProcessingTasks;
-        private Task _clientConnectingTask;                                                           
-        
-        private readonly IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  _clientsHandlers = new List<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>();
-        private readonly IList<TcpClientContext> _tcpClients = new List<TcpClientContext>(); 
+        private Task _clientConnectingTask;
+        // server and client entities
         private String _ipAddress;
         private UInt16 _port;
         private TcpListener _tcpListener;
+        private readonly ILog _logger;
+        private readonly IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  _clientsHandlers = new List<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>();
+        private readonly IList<TcpClientContext> _tcpClients = new List<TcpClientContext>(); 
         private Boolean _interruptRequested;
     }
 }
