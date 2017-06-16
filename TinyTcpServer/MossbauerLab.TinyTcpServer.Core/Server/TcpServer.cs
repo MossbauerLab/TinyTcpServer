@@ -17,7 +17,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 {
     public class TcpServer : ITcpServer, IDisposable
     {
-        public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort, ILog logger = null)
+        public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort, ILog logger = null, Boolean debug = false)
         {
             AssignIpAddressAndPort(ipAddress, port);
             _clientProcessingTasks = new Task[_parallelClientProcessingTasks];
@@ -30,9 +30,10 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 Logger loggerImpl = hierarchy.LoggerFactory.CreateLogger(hierarchy, "Logger4Tests");
                 loggerImpl.Hierarchy = hierarchy;
                 loggerImpl.AddAppender(new RollingFileAppender());
+                loggerImpl.AddAppender(new ColoredConsoleAppender());
                 loggerImpl.Repository.Configured = true;
 
-                hierarchy.Threshold = Level.Debug;
+                hierarchy.Threshold = debug ? Level.Debug : Level.Info;
                 loggerImpl.Level = Level.All;
 
                 _logger = new LogImpl(loggerImpl);
@@ -239,7 +240,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                             {
                                 client.ReadDataEvent.Dispose();
                                 client.WriteDataEvent.Dispose();
-                                _logger.DebugFormat(ClientRemoveMessagedTemplate, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
+                                _logger.DebugFormat(ClientRemoveMessagedTemplate, client.Id, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
                                 _tcpClients.Remove(client);
                             }
                         }
@@ -269,9 +270,10 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 if (client.Connected)
                 {
                     client.NoDelay = true;
+                    TcpClientContext clientContext = new TcpClientContext(client);
                     lock(_tcpClients)
-                        _tcpClients.Add(new TcpClientContext(client));
-                    _logger.DebugFormat(ClientConnectedMessagedTemplate, ((IPEndPoint)client.Client.LocalEndPoint).Address);
+                        _tcpClients.Add(clientContext);
+                    _logger.DebugFormat(ClientConnectedMessagedTemplate, clientContext.Id, ((IPEndPoint)client.Client.LocalEndPoint).Address);
                 }
             }
             catch (Exception)
@@ -346,7 +348,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     }
                 }
                 Array.Resize(ref buffer, client.BytesRead);
-                _logger.DebugFormat(ReceivedDataMessageTemplate, client.BytesRead, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
+                if(client.BytesRead > 0)
+                    _logger.DebugFormat(ReceivedDataMessageTemplate, client.BytesRead, client.Id, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
             }
             catch (Exception)
             {
@@ -371,9 +374,10 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             try
             {
+                _logger.DebugFormat(SendDataMessageTemplate, data.Length, client.Id, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
                 lock (client.WriteDataEvent)
                 {
-                    _logger.DebugFormat(SendDataMessageTemplate, data.Length, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
+                    
                     client.WriteDataEvent.Reset();
                     NetworkStream netStream = client.Client.GetStream();
                     netStream.WriteTimeout = DefaultMaximumWriteTimeout;
@@ -410,10 +414,10 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultParallelClientProcessingTasks = 128;
         private const Int32 DefaultClientInactiveWaitSeconds = 120;
 
-        private const String ClientRemoveMessagedTemplate = "Client connected from {0} ip was removed due to no activity";
-        private const String ClientConnectedMessagedTemplate = "Client connected from {0} ip address";
-        private const String ReceivedDataMessageTemplate = "Received {0} bytes from client {1}";
-        private const String SendDataMessageTemplate = "There are {0} bytes to client {1}";
+        private const String ClientRemoveMessagedTemplate = "Client {0} connected from {1} ip was removed due to no activity";
+        private const String ClientConnectedMessagedTemplate = "Client {0} connected from {1} ip address";
+        private const String ReceivedDataMessageTemplate = "Received {0} bytes from client {1} {2}";
+        private const String SendDataMessageTemplate = "There are {0} bytes was sent to client {1} {2}";
 
         // timeouts
         //todo: umv: make adjustable

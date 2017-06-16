@@ -11,14 +11,17 @@ namespace MossbauerLab.TinyTcpServer.Core.Client
         {
             if(client == null)
                 throw new ArgumentNullException("client");
+            Id = Guid.NewGuid();
             Client = client;
             BytesRead = 0;
             ReadDataEvent = new ManualResetEventSlim(false, 100);
             WriteDataEvent = new ManualResetEventSlim(false, 100);
             IsProcessing = false;
             SynchObject = new Object();
+
         }
 
+        public Guid Id { get; set; }
         public Object SynchObject { get; set; }
         public Boolean IsProcessing { get; set; }
         public Int32 BytesRead { get; set; }
