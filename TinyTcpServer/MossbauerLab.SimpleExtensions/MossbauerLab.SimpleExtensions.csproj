@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="Echo\EchoTcpServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Time\TimeTcpServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MossbauerLab.TinyTcpServer.Core\MossbauerLab.TinyTcpServer.Core.csproj">

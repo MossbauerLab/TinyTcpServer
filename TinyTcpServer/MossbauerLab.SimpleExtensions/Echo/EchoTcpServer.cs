@@ -5,6 +5,9 @@ using MossbauerLab.TinyTcpServer.Core.Server;
 
 namespace MossbauerLab.SimpleExtensions.Echo
 {
+    /// <summary>
+    ///  RFC 862 Implementation
+    /// </summary>
     class EchoTcpServer : TcpServer
     {
         private static class EchoTcpClientHandler

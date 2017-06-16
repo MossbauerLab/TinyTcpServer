@@ -40,17 +40,17 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             }
         }
 
-        public Boolean Start()
+        public virtual Boolean Start()
         {
             return StartImpl(false, _ipAddress, _port);
         }
 
-        public Boolean Start(String ipAddress, UInt16 port)
+        public virtual Boolean Start(String ipAddress, UInt16 port)
         {
             return StartImpl(true, ipAddress, port);
         }
 
-        public void Stop(Boolean clearHandlers)
+        public virtual void Stop(Boolean clearHandlers)
         {
             _interruptRequested = true;
             _tcpListener.Stop();
@@ -59,13 +59,13 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 ReleaseClientsHandlers();
         }
 
-        public void Restart()
+        public virtual void Restart()
         {
             Stop(false);
             Start();
         }
 
-        public void Restart(String ipAddress, UInt16 port)
+        public virtual void Restart(String ipAddress, UInt16 port)
         {
             Stop(false);
             Start(ipAddress, port);
@@ -78,6 +78,11 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 if(clientProcessingTask != null)
                     clientProcessingTask.Dispose();
             _clientConnectEvent.Dispose();
+        }
+
+        public void DisconnectAllClients()
+        {
+            ReleaseClients();
         }
 
         public void AddHandler(TcpClientHandlerInfo clientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]> handler)
