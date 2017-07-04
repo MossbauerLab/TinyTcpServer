@@ -9,7 +9,7 @@ namespace MossbauerLab.SimpleExtensions.Time
     /// <summary>
     ///  RFC 868 Implementation
     /// </summary>
-    class TimeTcpServer : TcpServer
+    public class TimeTcpServer : TcpServer
     {
         public TimeTcpServer(String ipAddress, UInt16 port = DefaultTimePort, ILog logger = null, Boolean debug = false)
             : base(ipAddress, port, logger, debug)

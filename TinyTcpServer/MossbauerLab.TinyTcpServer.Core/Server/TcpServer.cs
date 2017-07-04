@@ -38,6 +38,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
                 _logger = new LogImpl(loggerImpl);
             }
+            if(debug)
+                _logger.Debug("Server was inited in DEBUG mode");
         }
 
         public virtual Boolean Start()
@@ -57,6 +59,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             _tcpListener.Server.Close(ServerCloseTimeout);
             if (clearHandlers)
                 ReleaseClientsHandlers();
+            _clientConnectingTask.Wait();
         }
 
         public virtual void Restart()
@@ -78,6 +81,16 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 if(clientProcessingTask != null)
                     clientProcessingTask.Dispose();
             _clientConnectEvent.Dispose();
+        }
+
+        public Boolean IsReady 
+        {
+            get
+            {
+                if (_tcpListener == null)
+                    return false;
+                return _tcpListener.Server.IsBound && _clientConnectingTask.Status == TaskStatus.Running;
+            }
         }
 
         public void DisconnectAllClients()
@@ -130,6 +143,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 _interruptRequested = false;
                 if(assignNewValues)
                     AssignIpAddressAndPort(ipAddress, port);
+                _tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, true);
                 _tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
                 _tcpListener.Server.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DontFragment, true);
                 _tcpListener.Start();
