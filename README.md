@@ -5,4 +5,3 @@ We are having nuget package: https://www.nuget.org/packages/MossbauerLab.TinyTcp
 
 Contributors
 EvilLord666 aka Ushakov Michael
-Edisson aka Edd Lu
