@@ -17,5 +17,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         // filtering functions
         // properties
         Int32 ConnectedClients { get; }
+        Boolean IsReady { get; }
+        void DisconnectAllClients();
     }
 }
