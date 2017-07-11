@@ -59,7 +59,14 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             _tcpListener.Server.Close(ServerCloseTimeout);
             if (clearHandlers)
                 ReleaseClientsHandlers();
-            _clientConnectingTask.Wait();
+            if (_clientConnectEvent != null)
+                _clientConnectEvent.Dispose();
+            /*if (_serverMainTask != null && (_serverMainTask.Status != TaskStatus.Faulted &&
+                                            _serverMainTask.Status != TaskStatus.RanToCompletion &&
+                                            _serverMainTask.Status != TaskStatus.Canceled))
+                _serverMainTask.Wait();
+            if (_serverMainTask != null)
+                _serverMainTask.Dispose();*/
         }
 
         public virtual void Restart()
@@ -80,7 +87,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             foreach (Task clientProcessingTask in _clientProcessingTasks)
                 if(clientProcessingTask != null)
                     clientProcessingTask.Dispose();
-            _clientConnectEvent.Dispose();
+            if (_clientConnectEvent != null)
+                _clientConnectEvent.Dispose();
         }
 
         public Boolean IsReady 
@@ -140,14 +148,22 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             try
             {
+                _clientConnectEvent = new ManualResetEventSlim(false, 100);
                 _interruptRequested = false;
                 if(assignNewValues)
                     AssignIpAddressAndPort(ipAddress, port);
+                else
+                {
+                    _tcpListener = null;
+                    _tcpListener = new TcpListener(IPAddress.Parse(_ipAddress), _port);
+                }
                 _tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, true);
                 _tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
                 _tcpListener.Server.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.DontFragment, true);
                 _tcpListener.Start();
                 Task.Factory.StartNew(StartClientProcessing);
+                //_serverMainTask = new Task(StartClientProcessing);
+                //_serverMainTask.Start();
                 return _tcpListener.Server.IsBound;
             }
             catch (Exception)
@@ -206,7 +222,11 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     _clientConnectingTask = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
                     _clientConnectingTask.Start();
                 }
-                
+
+                /*if (_tcpClients.Count == 0)
+                {
+                }*/
+
                 if(_tcpClients.Count != 0)
                 { 
                     // 2. handle clients ... (read + write)
@@ -273,6 +293,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             Int32 clientsNumber = _tcpClients.Count;
             for (Int32 attempt = 0; attempt < _clientConnectAttempts; attempt++)
             {
+                if (_interruptRequested)
+                    return;
                 _clientConnectEvent.Reset();
                 _tcpListener.BeginAcceptTcpClient(ConnectAsyncCallback, _tcpListener);
                 _clientConnectEvent.Wait(_clientConnectTimeout);
@@ -426,7 +448,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const Int32 DefaultClientBufferSize = 16384;
         private const Int32 DefaultChunkSize = 8192;
         private const Int32 DefaultClientConnectAttempts = 1;
-        private const Int32 DefaultMaximumClientConnectTimeout = 200;    //ms
+        private const Int32 DefaultMaximumClientConnectTimeout = 50;//200;    //ms
         private const Int32 DefaultMaximumReadTimeout = 1000;            //ms
         private const Int32 DefaultMaximumWriteTimeout = 1000;           //ms
         private const Int32 DefaultReadAttempts = 8;
@@ -449,9 +471,10 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private Int32 _parallelClientProcessingTasks = DefaultParallelClientProcessingTasks;
 
         // threading things
-        private readonly ManualResetEventSlim _clientConnectEvent = new ManualResetEventSlim(false, 100);
+        private ManualResetEventSlim _clientConnectEvent;
         private readonly IList<Task> _clientProcessingTasks;
         private Task _clientConnectingTask;
+        // private Task _serverMainTask;
         // server and client entities
         private String _ipAddress;
         private UInt16 _port;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Threading;
 using log4net;
 using log4net.Config;
 using MossbauerLab.SimpleExtensions.Echo;
@@ -13,16 +12,19 @@ namespace MossbauerLab.SimpleExtensions.Tests.Echo
     [TestFixture]
     class TestEchoTcpServer
     {
-        public TestEchoTcpServer()
+        /*public TestEchoTcpServer()
         {
             XmlConfigurator.Configure();
             _logger = LogManager.GetLogger(typeof(TestTcpServer));
             _echoServer = new EchoTcpServer(LocalHost, EchoServerPort, _logger, true);
-        }
+        }*/
 
         [SetUp]
         public void SetUp()
         {
+            XmlConfigurator.Configure();
+            _logger = LogManager.GetLogger(typeof(TestTcpServer));
+            _echoServer = new EchoTcpServer(LocalHost, EchoServerPort, _logger, true);
             _echoServer.Start();
         }
 
@@ -34,13 +36,12 @@ namespace MossbauerLab.SimpleExtensions.Tests.Echo
 
         [TestCase("Ololo ololo i am driver of UFO!")]
         [TestCase("Some simple message with digits 01234567890ABCDEF (hex alphabet)")]
+        [TestCase("HOP HEY LALALEI")]
         public void TestEcho(String message)
         {
             using (TransportClient client = new TransportClient(true, LocalHost, EchoServerPort, 500, 500))
             {
-                //while (!_echoServer.IsReady) ;
-                //Assert.IsTrue(_echoServer.IsReady, "checking that server is ready");
-                Thread.Sleep(2000);
+                while (!_echoServer.IsReady) ;
                 Boolean result = client.Open();
                 Assert.IsTrue(result, "Checking that connection established");
                 result = client.Write(Encoding.UTF8.GetBytes(message));
@@ -57,7 +58,7 @@ namespace MossbauerLab.SimpleExtensions.Tests.Echo
 
         private const UInt16 EchoServerPort = 10000;
         private const String LocalHost = "127.0.0.1";
-        private readonly ILog _logger;
-        private readonly EchoTcpServer _echoServer;
+        private ILog _logger;
+        private EchoTcpServer _echoServer;
     }
 }

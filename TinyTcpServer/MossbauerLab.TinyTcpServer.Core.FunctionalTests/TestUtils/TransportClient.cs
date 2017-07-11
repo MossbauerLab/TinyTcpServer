@@ -149,7 +149,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
                 catch (Exception)
                 {
                     errorsNumber++;
-                    if (errorsNumber > ReadRetriesNumber / 2 + 1)
+                    if (errorsNumber > ReadRetriesNumber - 1)
                         return false;
                 }
 
@@ -194,7 +194,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils
         private const Int32 DefaultConnectTimeout = 1000;
         private const Int32 DefaultReadTimeout = 1000;
         private const Int32 DefaultWriteTimeout = 1000;
-        private const Int32 ReadRetriesNumber = 8;
+        private const Int32 ReadRetriesNumber = 16;
 
         private Boolean _isAsync;
         private String _server;

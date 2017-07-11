@@ -47,7 +47,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             _server.Start(LocalIpAddress, ServerPort2);
             Assert.IsTrue(result, String.Format("Checking that server was successfully startted on host with ip: {0} , and port: {1}", LocalIpAddress, ServerPort2));
             _server.Restart();
-            _server.Stop(true);
         }
 
         [TestCase(16, 1, true)]
