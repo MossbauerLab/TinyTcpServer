@@ -5,6 +5,7 @@ using log4net.Config;
 using MossbauerLab.SimpleExtensions.Echo;
 using MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server;
 using MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestUtils;
+using MossbauerLab.TinyTcpServer.Core.Server;
 using NUnit.Framework;
 
 namespace MossbauerLab.SimpleExtensions.Tests.Echo
@@ -59,6 +60,6 @@ namespace MossbauerLab.SimpleExtensions.Tests.Echo
         private const UInt16 EchoServerPort = 10000;
         private const String LocalHost = "127.0.0.1";
         private ILog _logger;
-        private EchoTcpServer _echoServer;
+        private ITcpServer _echoServer;
     }
 }
