@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using MossbauerLab.TinyTcpServer.MnGUI.View.Forms;
 
 namespace MossbauerLab.TinyTcpServer.MnGUI
 {
