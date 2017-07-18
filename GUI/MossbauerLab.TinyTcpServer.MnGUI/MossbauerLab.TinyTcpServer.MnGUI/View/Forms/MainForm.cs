@@ -9,7 +9,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
+using MossbauerLab.TinyTcpServer.Core.Server;
 using MossbauerLab.TinyTcpServer.MnGUI.Data;
+using MossbauerLab.TinyTcpServer.MnGUI.Factories;
 
 namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 {
@@ -19,7 +21,9 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         {
             InitializeComponent();
             Load += (sender, args) => FillControls();
-            
+            _startButton.Click += (sender, args) => Start();
+            _stopButton.Click += (sender, args) => Stop();
+            _restartButton.Click += (sender, args) => Restart();
         }
 
         private void FillControls()
@@ -64,14 +68,32 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 
         private void Start()
         {
+            // getting server type
+            if (_serverTypeComboBox.SelectedIndex < 0)
+            {
+                // log
+                return;
+            }
+            ServerType serverType = ServerType.Scripting;
+            foreach (KeyValuePair<ServerType, String> server in _servers)
+            {
+                if (String.Equals(_serverTypeComboBox.Items[_serverTypeComboBox.SelectedIndex].ToString(), server.Value))
+                    serverType = server.Key;
+            }
+            if (_server == null)
+                _server = ServerFactory.Create(serverType, _ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), UInt16.Parse(_portTextBox.Text));
+            _server.Start();
         }
 
         public void Stop()
         {
+            _server.Stop(false);
         }
 
         public void Restart()
         {
+            Stop();
+            Start();
         }
 
         private const String ConfigFile = @".\settings.txt";
@@ -82,5 +104,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             {ServerType.Echo, "Echo server"},
             {ServerType.Time, "Time server"},
         };
+
+        private ITcpServer _server;
     }
 }
