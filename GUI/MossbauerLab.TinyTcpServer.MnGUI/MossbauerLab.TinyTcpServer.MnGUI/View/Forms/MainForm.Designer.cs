@@ -1,4 +1,4 @@
-﻿namespace MossbauerLab.TinyTcpServer.MnGUI
+﻿namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 {
     partial class MainForm
     {

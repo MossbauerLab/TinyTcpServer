@@ -9,8 +9,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
+using MossbauerLab.TinyTcpServer.MnGUI.Data;
 
-namespace MossbauerLab.TinyTcpServer.MnGUI
+namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 {
     public partial class MainForm : Form
     {
@@ -30,12 +31,23 @@ namespace MossbauerLab.TinyTcpServer.MnGUI
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                     _ipAddressComboBox.Items.Add(ip.ToString());
             }
+
             // load last IP address and TCP Port settings
             if (File.Exists(ConfigFile))
             {
                 String[] filelines = File.ReadAllLines(ConfigFile);
                 ApplySettings(GetOptions(filelines));
             }
+            else
+            {
+                if (_ipAddressComboBox.Items.Count > 0)
+                    _ipAddressComboBox.SelectedIndex = 0;
+                _portTextBox.Text = DefaultTcpPort.ToString();
+            }
+
+            // add server type
+            foreach (KeyValuePair<ServerType, String> server in _servers)
+                _serverTypeComboBox.Items.Add(server.Value);
         }
 
         private IDictionary<String, String> GetOptions(String[] lines)
@@ -50,6 +62,25 @@ namespace MossbauerLab.TinyTcpServer.MnGUI
 
         }
 
+        private void Start()
+        {
+        }
+
+        public void Stop()
+        {
+        }
+
+        public void Restart()
+        {
+        }
+
         private const String ConfigFile = @".\settings.txt";
+        private const UInt16 DefaultTcpPort = 9999;
+
+        private readonly IDictionary<ServerType, String> _servers = new Dictionary<ServerType, String>()
+        {
+            {ServerType.Echo, "Echo server"},
+            {ServerType.Time, "Time server"},
+        };
     }
 }
