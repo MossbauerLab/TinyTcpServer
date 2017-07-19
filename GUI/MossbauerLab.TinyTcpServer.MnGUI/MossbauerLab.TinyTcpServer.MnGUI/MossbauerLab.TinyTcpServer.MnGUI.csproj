@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Data\ServerType.cs" />
     <Compile Include="Factories\ServerFactory.cs" />
+    <Compile Include="View\Helpers\ServerConfigInfoHelper.cs" />
     <Compile Include="View\Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -8,6 +8,7 @@ using MossbauerLab.TinyTcpServer.Core.Client;
 using MossbauerLab.TinyTcpServer.Core.Server;
 using MossbauerLab.TinyTcpServer.MnGUI.Data;
 using MossbauerLab.TinyTcpServer.MnGUI.Factories;
+using MossbauerLab.TinyTcpServer.MnGUI.View.Helpers;
 
 namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 {
@@ -51,6 +52,11 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _serverTypeComboBox.SelectedIndex = 0;
 
             // fill log level
+
+            // fill server config
+            IList<String> configStrings = ServerConfigInfoHelper.GetConfigStrings(_serverConfig);
+            foreach (String configString in configStrings)
+                _serverParametersView.Items.Add(configString);
         }
 
         private IDictionary<String, String> GetOptions(String[] lines)
@@ -80,7 +86,10 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
                     serverType = server.Key;
             }
             if (_server == null)
-                _server = ServerFactory.Create(serverType, _ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), UInt16.Parse(_portTextBox.Text));
+            { 
+                _server = ServerFactory.Create(serverType, _ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), 
+                                               UInt16.Parse(_portTextBox.Text), null, _serverConfig);
+            }
             _server.Start();
             if (_timers[0] == null)
             {
@@ -150,6 +159,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             {ServerType.Time, "Time server"},
         };
 
+        private TcpServerConfig _serverConfig = new TcpServerConfig();
         private ITcpServer _server;
         private readonly System.Threading.Timer[] _timers = new System.Threading.Timer[1];
     }

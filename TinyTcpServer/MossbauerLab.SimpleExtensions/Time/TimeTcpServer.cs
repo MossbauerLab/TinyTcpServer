@@ -12,7 +12,7 @@ namespace MossbauerLab.SimpleExtensions.Time
     public class TimeTcpServer : TcpServer
     {
         public TimeTcpServer(String ipAddress, UInt16 port = DefaultTimePort, ILog logger = null, Boolean debug = false, TcpServerConfig config = null)
-            : base(ipAddress, port, logger, debug)
+            : base(ipAddress, port, logger, debug, config)
         {
             _task = new Task(ClientProccessor);
         }

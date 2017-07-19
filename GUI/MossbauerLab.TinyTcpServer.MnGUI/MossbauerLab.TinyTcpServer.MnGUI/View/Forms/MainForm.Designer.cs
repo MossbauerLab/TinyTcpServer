@@ -158,6 +158,7 @@
             this._serverParametersView.Size = new System.Drawing.Size(317, 287);
             this._serverParametersView.TabIndex = 0;
             this._serverParametersView.UseCompatibleStateImageBehavior = false;
+            this._serverParametersView.View = System.Windows.Forms.View.List;
             // 
             // _applyButton
             // 
