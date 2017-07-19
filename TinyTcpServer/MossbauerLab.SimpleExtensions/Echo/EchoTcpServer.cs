@@ -10,7 +10,7 @@ namespace MossbauerLab.SimpleExtensions.Echo
     /// </summary>
     public class EchoTcpServer : TcpServer
     {
-        public EchoTcpServer(String ipAddress, UInt16 port = DefaultEchoPort, ILog logger = null, Boolean debug = false)
+        public EchoTcpServer(String ipAddress, UInt16 port = DefaultEchoPort, ILog logger = null, Boolean debug = false, TcpServerConfig config = null)
             : base(ipAddress, port, logger, debug)
         {
             AddHandler(new TcpClientHandlerInfo(Guid.NewGuid()), EchoTcpClientHandler.Handle);
