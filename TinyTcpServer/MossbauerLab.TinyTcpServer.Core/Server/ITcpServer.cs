@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using MossbauerLab.TinyTcpServer.Core.Client;
 using MossbauerLab.TinyTcpServer.Core.Handlers;
 
 namespace MossbauerLab.TinyTcpServer.Core.Server
@@ -18,6 +20,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         // properties
         Int32 ConnectedClients { get; }
         Boolean IsReady { get; }
+        IList<TcpClientContext> Clients { get; }
         void DisconnectAllClients();
     }
 }

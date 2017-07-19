@@ -160,7 +160,7 @@
             // 
             // _applyButton
             // 
-            this._applyButton.Location = new System.Drawing.Point(142, 133);
+            this._applyButton.Location = new System.Drawing.Point(142, 212);
             this._applyButton.Name = "_applyButton";
             this._applyButton.Size = new System.Drawing.Size(75, 23);
             this._applyButton.TabIndex = 6;

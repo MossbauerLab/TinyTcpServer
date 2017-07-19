@@ -61,12 +61,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 ReleaseClientsHandlers();
             if (_clientConnectEvent != null)
                 _clientConnectEvent.Dispose();
-            /*if (_serverMainTask != null && (_serverMainTask.Status != TaskStatus.Faulted &&
-                                            _serverMainTask.Status != TaskStatus.RanToCompletion &&
-                                            _serverMainTask.Status != TaskStatus.Canceled))
-                _serverMainTask.Wait();
-            if (_serverMainTask != null)
-                _serverMainTask.Dispose();*/
+            _serverStartedProcessing = false;
         }
 
         public virtual void Restart()
@@ -97,7 +92,9 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             {
                 if (_tcpListener == null)
                     return false;
-                return _tcpListener.Server.IsBound && _clientConnectingTask.Status == TaskStatus.Running;
+                return _tcpListener.Server.IsBound && _serverStartedProcessing;
+                //(_clientConnectingTask.Status == TaskStatus.Running ||
+                // _clientConnectingTask.Status == TaskStatus.RanToCompletion);
             }
         }
 
@@ -144,10 +141,16 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             get { return _tcpClients.Count; }
         }
 
+        public IList<TcpClientContext> Clients
+        {
+            get { return _tcpClients; }
+        }
+
         private Boolean StartImpl(Boolean assignNewValues, String ipAddress, UInt16 port)
         {
             try
             {
+                _serverStartedProcessing = false;
                 _clientConnectEvent = new ManualResetEventSlim(false, 100);
                 _interruptRequested = false;
                 if(assignNewValues)
@@ -290,6 +293,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
         private void ClientConnectProcessing()
         {
+            _serverStartedProcessing = true;
             Int32 clientsNumber = _tcpClients.Count;
             for (Int32 attempt = 0; attempt < _clientConnectAttempts; attempt++)
             {
@@ -474,6 +478,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private ManualResetEventSlim _clientConnectEvent;
         private readonly IList<Task> _clientProcessingTasks;
         private Task _clientConnectingTask;
+        private Boolean _serverStartedProcessing;
         // private Task _serverMainTask;
         // server and client entities
         private String _ipAddress;
