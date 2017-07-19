@@ -99,6 +99,7 @@
             // _clientsListBox
             // 
             this._clientsListBox.FormattingEnabled = true;
+            this._clientsListBox.HorizontalScrollbar = true;
             this._clientsListBox.Location = new System.Drawing.Point(624, 12);
             this._clientsListBox.Name = "_clientsListBox";
             this._clientsListBox.Size = new System.Drawing.Size(237, 329);

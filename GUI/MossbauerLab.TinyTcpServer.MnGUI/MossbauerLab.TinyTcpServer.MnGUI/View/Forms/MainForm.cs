@@ -98,7 +98,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             {
                 _timers[0].Change(-1, -1);
             }
-            UpdateButtonsState();
+            UpdateControlsState();
         }
 
         public void Restart()
@@ -107,13 +107,16 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             Start();
         }
 
-        void UpdateButtonsState()
+        void UpdateControlsState()
         {
             if (_server == null)
                 return;
             _startButton.Enabled = !_server.IsReady;
             _restartButton.Enabled = _server.IsReady;
             _stopButton.Enabled = _server.IsReady;
+            _applyButton.Enabled = !_server.IsReady;
+            _ipAddressComboBox.Enabled = !_server.IsReady;
+            _portTextBox.Enabled = !_server.IsReady;
         }
 
         void PopulateClients()
@@ -125,14 +128,15 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
                 _clientsListBox.Items.Add(String.Format(TotalClientsTemplate, clients.Count));
                 foreach (TcpClientContext client in clients)
                 {
-                    _clientsListBox.Items.Add(String.Format(ClientInfoTemplate, client.Id, "127.0.0.1"));
+                    String ipAddress = ((IPEndPoint)client.Client.Client.RemoteEndPoint).Address.ToString();
+                    _clientsListBox.Items.Add(String.Format(ClientInfoTemplate, client.Id, ipAddress));
                 }
             }
         }
 
         void StateUpdater(Object state)
         {
-            BeginInvoke((Action)(UpdateButtonsState));
+            BeginInvoke((Action)(UpdateControlsState));
             BeginInvoke((Action) PopulateClients);
         }
 
