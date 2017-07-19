@@ -8,6 +8,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using MossbauerLab.TinyTcpServer.Core.Server;
 using MossbauerLab.TinyTcpServer.MnGUI.Data;
@@ -52,6 +54,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             // add server type
             foreach (KeyValuePair<ServerType, String> server in _servers)
                 _serverTypeComboBox.Items.Add(server.Value);
+            _serverTypeComboBox.SelectedIndex = 0;
         }
 
         private IDictionary<String, String> GetOptions(String[] lines)
@@ -83,17 +86,43 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             if (_server == null)
                 _server = ServerFactory.Create(serverType, _ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), UInt16.Parse(_portTextBox.Text));
             _server.Start();
+            UpdateButtonsState();
+            if (_timers[0] == null)
+            {
+                System.Threading.Timer periodicalUpdater = new System.Threading.Timer(StateUpdater, null, 500, 500);
+                _timers[0] = periodicalUpdater;
+            }
+            else _timers[0].Change(500, 500);
         }
 
         public void Stop()
         {
             _server.Stop(false);
+            UpdateButtonsState();
+            if (_timers[0] != null)
+            {
+                _timers[0].Change(-1, -1);
+            }
         }
 
         public void Restart()
         {
             Stop();
             Start();
+        }
+
+        void UpdateButtonsState()
+        {
+            if (_server == null)
+                return;
+            _startButton.Enabled = !_server.IsReady;
+            _restartButton.Enabled = _server.IsReady;
+            _stopButton.Enabled = _server.IsReady;
+        }
+
+        void StateUpdater(Object state)
+        {
+            BeginInvoke((Action)(UpdateButtonsState));
         }
 
         private const String ConfigFile = @".\settings.txt";
@@ -106,5 +135,6 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         };
 
         private ITcpServer _server;
+        private System.Threading.Timer[] _timers = new System.Threading.Timer[1];
     }
 }
