@@ -53,7 +53,7 @@
             // 
             // _startButton
             // 
-            this._startButton.Location = new System.Drawing.Point(624, 352);
+            this._startButton.Location = new System.Drawing.Point(759, 352);
             this._startButton.Name = "_startButton";
             this._startButton.Size = new System.Drawing.Size(75, 23);
             this._startButton.TabIndex = 0;
@@ -62,7 +62,7 @@
             // 
             // _stopButton
             // 
-            this._stopButton.Location = new System.Drawing.Point(705, 352);
+            this._stopButton.Location = new System.Drawing.Point(840, 352);
             this._stopButton.Name = "_stopButton";
             this._stopButton.Size = new System.Drawing.Size(75, 23);
             this._stopButton.TabIndex = 1;
@@ -71,7 +71,7 @@
             // 
             // _restartButton
             // 
-            this._restartButton.Location = new System.Drawing.Point(786, 352);
+            this._restartButton.Location = new System.Drawing.Point(921, 352);
             this._restartButton.Name = "_restartButton";
             this._restartButton.Size = new System.Drawing.Size(75, 23);
             this._restartButton.TabIndex = 2;
@@ -83,7 +83,7 @@
             this._logsGroupBox.Controls.Add(this._logsTextBox);
             this._logsGroupBox.Location = new System.Drawing.Point(12, 381);
             this._logsGroupBox.Name = "_logsGroupBox";
-            this._logsGroupBox.Size = new System.Drawing.Size(849, 162);
+            this._logsGroupBox.Size = new System.Drawing.Size(1000, 289);
             this._logsGroupBox.TabIndex = 3;
             this._logsGroupBox.TabStop = false;
             this._logsGroupBox.Text = "Logs:";
@@ -92,7 +92,7 @@
             // 
             this._logsTextBox.Location = new System.Drawing.Point(7, 20);
             this._logsTextBox.Name = "_logsTextBox";
-            this._logsTextBox.Size = new System.Drawing.Size(824, 136);
+            this._logsTextBox.Size = new System.Drawing.Size(980, 253);
             this._logsTextBox.TabIndex = 0;
             this._logsTextBox.Text = "";
             // 
@@ -102,7 +102,7 @@
             this._clientsListBox.HorizontalScrollbar = true;
             this._clientsListBox.Location = new System.Drawing.Point(624, 12);
             this._clientsListBox.Name = "_clientsListBox";
-            this._clientsListBox.Size = new System.Drawing.Size(237, 329);
+            this._clientsListBox.Size = new System.Drawing.Size(375, 329);
             this._clientsListBox.TabIndex = 4;
             // 
             // _serverSettingsGroup
@@ -222,7 +222,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(883, 567);
+            this.ClientSize = new System.Drawing.Size(1024, 707);
             this.Controls.Add(this._serverSettingsGroup);
             this.Controls.Add(this._clientsListBox);
             this.Controls.Add(this._logsGroupBox);
