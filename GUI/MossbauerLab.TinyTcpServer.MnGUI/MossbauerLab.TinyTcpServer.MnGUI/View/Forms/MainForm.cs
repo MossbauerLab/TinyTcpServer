@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows.Forms;
 using log4net;
+using log4net.Appender;
 using log4net.Config;
+using log4net.Core;
+using log4net.Repository.Hierarchy;
 using MossbauerLab.TinyTcpServer.Core.Client;
 using MossbauerLab.TinyTcpServer.Core.Server;
 using MossbauerLab.TinyTcpServer.MnGUI.Data;
@@ -24,6 +28,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _startButton.Click += (sender, args) => Start();
             _stopButton.Click += (sender, args) => Stop();
             _restartButton.Click += (sender, args) => Restart();
+            _logLevelComboBox.SelectedIndexChanged += (sender, args) => ApplyLogLevel();
         }
 
         private void FillControls()
@@ -59,6 +64,9 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _logger = LogManager.GetLogger(typeof(MainForm));
             _richTextBoxAppender = new RichTextBoxAppender(_logsTextBox);
             ((log4net.Repository.Hierarchy.Logger)_logger.Logger).AddAppender(_richTextBoxAppender);
+            foreach (KeyValuePair<Level, String> level in _logLevels)
+                _logLevelComboBox.Items.Add(level.Value);
+            _logLevelComboBox.SelectedIndex = 5;
 
             // fill server config
             IList<String> configStrings = ServerConfigInfoHelper.GetConfigStrings(_serverConfig);
@@ -130,6 +138,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _restartButton.Enabled = _server.IsReady;
             _stopButton.Enabled = _server.IsReady;
             _applyButton.Enabled = !_server.IsReady;
+            _logLevelComboBox.Enabled = !_server.IsReady;
             _ipAddressComboBox.Enabled = !_server.IsReady;
             _portTextBox.Enabled = !_server.IsReady;
         }
@@ -155,6 +164,12 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             BeginInvoke((Action) PopulateClients);
         }
 
+        void ApplyLogLevel()
+        {
+            Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository();
+            hierarchy.Threshold =_logLevels.First(item => item.Value.Equals(_logLevelComboBox.Items[_logLevelComboBox.SelectedIndex].ToString())).Key;
+        }
+
         private const String ConfigFile = @".\settings.txt";
         private const UInt16 DefaultTcpPort = 9999;
         private const String TotalClientsTemplate = "Total connected clients: {0}";
@@ -164,6 +179,12 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         {
             {ServerType.Echo, "Echo server"},
             {ServerType.Time, "Time server"},
+        };
+
+        private readonly IDictionary<Level, String> _logLevels = new Dictionary<Level, String>()
+        {
+            {Level.Alert, "Alert"}, {Level.Critical, "Critical"}, {Level.Debug, "Debug"},
+            {Level.Emergency, "Emergency"}, {Level.Error, "Error"}, {Level.Info, "Info"}, {Level.Warn, "Warn"}
         };
 
         private ILog _logger;
