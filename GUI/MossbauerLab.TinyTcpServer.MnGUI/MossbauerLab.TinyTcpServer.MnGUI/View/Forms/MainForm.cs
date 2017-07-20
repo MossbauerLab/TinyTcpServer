@@ -4,10 +4,13 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows.Forms;
+using log4net;
+using log4net.Config;
 using MossbauerLab.TinyTcpServer.Core.Client;
 using MossbauerLab.TinyTcpServer.Core.Server;
 using MossbauerLab.TinyTcpServer.MnGUI.Data;
 using MossbauerLab.TinyTcpServer.MnGUI.Factories;
+using MossbauerLab.TinyTcpServer.MnGUI.LogUtils;
 using MossbauerLab.TinyTcpServer.MnGUI.View.Helpers;
 
 namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
@@ -51,7 +54,11 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
                 _serverTypeComboBox.Items.Add(server.Value);
             _serverTypeComboBox.SelectedIndex = 0;
 
-            // fill log level
+            // init logger + fill log level
+            XmlConfigurator.Configure();
+            _logger = LogManager.GetLogger(typeof(MainForm));
+            _richTextBoxAppender = new RichTextBoxAppender(_logsTextBox);
+            ((log4net.Repository.Hierarchy.Logger)_logger.Logger).AddAppender(_richTextBoxAppender);
 
             // fill server config
             IList<String> configStrings = ServerConfigInfoHelper.GetConfigStrings(_serverConfig);
@@ -88,7 +95,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             if (_server == null)
             { 
                 _server = ServerFactory.Create(serverType, _ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), 
-                                               UInt16.Parse(_portTextBox.Text), null, _serverConfig);
+                                               UInt16.Parse(_portTextBox.Text), _logger, _serverConfig);
             }
             _server.Start();
             if (_timers[0] == null)
@@ -159,7 +166,9 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             {ServerType.Time, "Time server"},
         };
 
-        private TcpServerConfig _serverConfig = new TcpServerConfig();
+        private ILog _logger;
+        private RichTextBoxAppender _richTextBoxAppender;
+        private readonly TcpServerConfig _serverConfig = new TcpServerConfig();
         private ITcpServer _server;
         private readonly System.Threading.Timer[] _timers = new System.Threading.Timer[1];
     }

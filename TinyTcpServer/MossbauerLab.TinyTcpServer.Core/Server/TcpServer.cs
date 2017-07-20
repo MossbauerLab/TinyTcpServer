@@ -64,6 +64,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             if (_clientConnectEvent != null)
                 _clientConnectEvent.Dispose();
             _serverStartedProcessing = false;
+            _logger.Info(ServerStoppedTemplate);
         }
 
         public virtual void Restart()
@@ -167,6 +168,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 Task.Factory.StartNew(StartClientProcessing);
                 //_serverMainTask = new Task(StartClientProcessing);
                 //_serverMainTask.Start();
+                _logger.InfoFormat(ServerStarteTemplated, _ipAddress, _port);
                 return _tcpListener.Server.IsBound;
             }
             catch (Exception)
@@ -323,8 +325,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             }
             catch (Exception)
             {
-                //todo: umv: probably we should notify i.e. via logs
-                _logger.Error("An error occured during client connection");
+                if (!_interruptRequested)
+                    _logger.Error("An error occured during client connection");
             }
             _clientConnectEvent.Set();
         }
@@ -452,6 +454,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private const String ClientConnectedMessagedTemplate = "Client {0} connected from {1} ip address";
         private const String ReceivedDataMessageTemplate = "Received {0} bytes from client {1} {2}";
         private const String SendDataMessageTemplate = "There are {0} bytes was sent to client {1} {2}";
+        private const String ServerStarteTemplated = "TCP Server successfully started with ip address {0} on {1} port";
+        private const String ServerStoppedTemplate = "TCP Server was stopped";
 
         private readonly TcpServerConfig _config;
 
