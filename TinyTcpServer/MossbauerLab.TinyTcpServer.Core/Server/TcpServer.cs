@@ -17,10 +17,12 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 {
     public class TcpServer : ITcpServer, IDisposable
     {
-        public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort, ILog logger = null, Boolean debug = false)
+        public TcpServer(String ipAddress = DefaultServerIpAddress, UInt16 port = DefaultServerPort, ILog logger = null, 
+                         Boolean debug = false, TcpServerConfig config = null)
         {
+            _config = config ?? new TcpServerConfig();
             AssignIpAddressAndPort(ipAddress, port);
-            _clientProcessingTasks = new Task[_parallelClientProcessingTasks];
+            _clientProcessingTasks = new Task[_config.ParallelTask];
             _clientConnectingTask = new Task(ClientConnectProcessing, new CancellationToken(_interruptRequested));
             if (logger != null)
                 _logger = logger;
@@ -56,7 +58,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             _interruptRequested = true;
             _tcpListener.Stop();
-            _tcpListener.Server.Close(ServerCloseTimeout);
+            _tcpListener.Server.Close(_config.ServerCloseTimeout);
             if (clearHandlers)
                 ReleaseClientsHandlers();
             if (_clientConnectEvent != null)
@@ -93,8 +95,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 if (_tcpListener == null)
                     return false;
                 return _tcpListener.Server.IsBound && _serverStartedProcessing;
-                //(_clientConnectingTask.Status == TaskStatus.Running ||
-                // _clientConnectingTask.Status == TaskStatus.RanToCompletion);
             }
         }
 
@@ -184,7 +184,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             if (_tcpListener != null)
             {
                 ReleaseClients();
-                _tcpListener.Server.Close(ServerCloseTimeout);
+                _tcpListener.Server.Close(_config.ServerCloseTimeout);
                 _tcpListener.Server.Dispose();
                 _tcpListener.Stop();
             }
@@ -278,7 +278,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                             client.Inactive = true;
                             if (client.InactiveTimeMark == default(DateTime))
                                 client.InactiveTimeMark = DateTime.Now;
-                            else if (client.InactiveTimeMark.AddSeconds(DefaultClientInactiveWaitSeconds) < DateTime.Now)
+                            else if (client.InactiveTimeMark.AddSeconds(_config.ClientInactivityTime) < DateTime.Now)
                             {
                                 client.ReadDataEvent.Dispose();
                                 client.WriteDataEvent.Dispose();
@@ -295,13 +295,13 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             _serverStartedProcessing = true;
             Int32 clientsNumber = _tcpClients.Count;
-            for (Int32 attempt = 0; attempt < _clientConnectAttempts; attempt++)
+            for (Int32 attempt = 0; attempt < _config.ClientConnectAttempts; attempt++)
             {
                 if (_interruptRequested)
                     return;
                 _clientConnectEvent.Reset();
                 _tcpListener.BeginAcceptTcpClient(ConnectAsyncCallback, _tcpListener);
-                _clientConnectEvent.Wait(_clientConnectTimeout);
+                _clientConnectEvent.Wait(_config.ClientConnectTimeout);
                 if (_tcpClients.Count > clientsNumber)
                     break;
             }
@@ -371,24 +371,24 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
         private Byte[] ReceiveImpl(TcpClientContext client)
         {
-            Byte[] buffer = new Byte[DefaultClientBufferSize];
+            Byte[] buffer = new Byte[_config.ClientBufferSize];
             client.BytesRead = 0;
 
             try
             {
                 NetworkStream netStream = client.Client.GetStream();
-                netStream.ReadTimeout = DefaultMaximumReadTimeout;
-                for (Int32 attempt = 0; attempt < _clientReadAttempts; attempt++)
+                netStream.ReadTimeout = _config.ReadTimeout;
+                for (Int32 attempt = 0; attempt < _config.ClientReadAttempts; attempt++)
                 {
                     Boolean result = netStream.DataAvailable;
                     while (result)
                     {
                         client.ReadDataEvent.Reset();
-                        Array.Resize(ref buffer, buffer.Length + DefaultChunkSize);
+                        Array.Resize(ref buffer, buffer.Length + _config.ChunkSize);
                         Int32 offset = client.BytesRead;
-                        Int32 size = DefaultChunkSize;
+                        Int32 size = _config.ChunkSize;
                         netStream.BeginRead(buffer, offset, size, ReadAsyncCallback, client);
-                        client.ReadDataEvent.Wait(_readTimeout);
+                        client.ReadDataEvent.Wait(_config.ReadTimeout);
                         result = netStream.DataAvailable;
                     }
                 }
@@ -425,9 +425,9 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     
                     client.WriteDataEvent.Reset();
                     NetworkStream netStream = client.Client.GetStream();
-                    netStream.WriteTimeout = DefaultMaximumWriteTimeout;
+                    netStream.WriteTimeout = _config.WriteTimeout;
                     netStream.BeginWrite(data, 0, data.Length, WriteAsyncCallback, client);
-                    client.WriteDataEvent.Wait(_writeTimeout);
+                    client.WriteDataEvent.Wait(_config.WriteTimeout);
                 }
             }
             catch (Exception)
@@ -448,31 +448,12 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
         private const String DefaultServerIpAddress = "127.0.0.1";
         private const Int32 DefaultServerPort = 16000;
-        private const Int32 ServerCloseTimeout = 2000;
-        private const Int32 DefaultClientBufferSize = 16384;
-        private const Int32 DefaultChunkSize = 8192;
-        private const Int32 DefaultClientConnectAttempts = 1;
-        private const Int32 DefaultMaximumClientConnectTimeout = 50;//200;    //ms
-        private const Int32 DefaultMaximumReadTimeout = 1000;            //ms
-        private const Int32 DefaultMaximumWriteTimeout = 1000;           //ms
-        private const Int32 DefaultReadAttempts = 8;
-        private const Int32 DefaultParallelClientProcessingTasks = 128;
-        private const Int32 DefaultClientInactiveWaitSeconds = 120;
-
         private const String ClientRemoveMessagedTemplate = "Client {0} connected from {1} ip was removed due to no activity";
         private const String ClientConnectedMessagedTemplate = "Client {0} connected from {1} ip address";
         private const String ReceivedDataMessageTemplate = "Received {0} bytes from client {1} {2}";
         private const String SendDataMessageTemplate = "There are {0} bytes was sent to client {1} {2}";
 
-        // timeouts
-        //todo: umv: make adjustable
-        private Int32 _clientConnectTimeout = DefaultMaximumClientConnectTimeout;
-        private Int32 _readTimeout = DefaultMaximumReadTimeout;
-        private Int32 _writeTimeout = DefaultMaximumWriteTimeout;
-        // other parameters
-        private Int32 _clientConnectAttempts = DefaultClientConnectAttempts;
-        private Int32 _clientReadAttempts = DefaultReadAttempts;
-        private Int32 _parallelClientProcessingTasks = DefaultParallelClientProcessingTasks;
+        private readonly TcpServerConfig _config;
 
         // threading things
         private ManualResetEventSlim _clientConnectEvent;

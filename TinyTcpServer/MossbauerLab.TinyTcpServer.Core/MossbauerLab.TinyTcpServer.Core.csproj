@@ -50,6 +50,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\ITcpServer.cs" />
     <Compile Include="Server\TcpServer.cs" />
+    <Compile Include="Server\TcpServerConfig.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Filtering\" />
