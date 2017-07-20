@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Windows.Forms;
 using log4net;
-using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Repository.Hierarchy;
@@ -63,7 +62,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             XmlConfigurator.Configure();
             _logger = LogManager.GetLogger(typeof(MainForm));
             _richTextBoxAppender = new RichTextBoxAppender(_logsTextBox);
-            ((log4net.Repository.Hierarchy.Logger)_logger.Logger).AddAppender(_richTextBoxAppender);
+            ((Logger)_logger.Logger).AddAppender(_richTextBoxAppender);
             foreach (KeyValuePair<Level, String> level in _logLevels)
                 _logLevelComboBox.Items.Add(level.Value);
             _logLevelComboBox.SelectedIndex = 5;
