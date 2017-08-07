@@ -1,5 +1,5 @@
 # TinyTcpServer
-A small tcp server working under Mono or CLR and provides hooks for handling data exchange with clients (works under mono and .net) 
+A small tcp server working under Mono or .NET and provides hooks for handling data exchange with clients (works under mono and .net) 
 It was fully tested with NUnit Tests on single and multi client (parallel) exchange.
 
 Also we written 2 simple protocols over this server in separate project:
