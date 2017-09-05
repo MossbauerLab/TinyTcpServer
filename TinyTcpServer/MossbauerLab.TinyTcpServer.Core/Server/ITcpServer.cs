@@ -14,6 +14,9 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         // handler functions
         void AddHandler(TcpClientHandlerInfo clientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]> handler);
         void RemoveHandler(TcpClientHandlerInfo clientHandlerInfo);
+        // connect/disconnect handler (one 4 all clients)
+        void AddConnectionHandler(Guid id, Action<TcpClientContext, Boolean> handler);
+        void RemoveConnectionHandler(Guid id);
         // send data functions
         void SendData(TcpClientHandlerInfo clientHandlerInfo, Byte[] data);
         // filtering functions

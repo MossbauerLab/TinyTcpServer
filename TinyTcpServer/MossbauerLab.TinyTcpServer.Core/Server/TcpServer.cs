@@ -122,6 +122,20 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 _clientsHandlers.Remove(handler);
         }
 
+        public void AddConnectionHandler(Guid id, Action<TcpClientContext, Boolean> handler)
+        {
+            if(handler == null)
+                throw new ArgumentNullException("handler");
+            if (!_connectHandlers.ContainsKey(id))
+                _connectHandlers.Add(id, handler);
+        }
+
+        public void RemoveConnectionHandler(Guid id)
+        {
+            if (_connectHandlers.ContainsKey(id))
+                _connectHandlers.Remove(id);
+        }
+
         public void SendData(TcpClientHandlerInfo clientHandlerInfo, Byte[] data)
         {
             IList<TcpClientContext> selectedClients;
@@ -285,6 +299,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                                 client.ReadDataEvent.Dispose();
                                 client.WriteDataEvent.Dispose();
                                 _logger.DebugFormat(ClientRemoveMessagedTemplate, client.Id, ((IPEndPoint)client.Client.Client.LocalEndPoint).Address);
+                                foreach (KeyValuePair<Guid, Action<TcpClientContext, Boolean>> handler in _connectHandlers)
+                                    handler.Value(client, false);
                                 _tcpClients.Remove(client);
                             }
                         }
@@ -320,6 +336,10 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                     TcpClientContext clientContext = new TcpClientContext(client);
                     lock(_tcpClients)
                         _tcpClients.Add(clientContext);
+                    foreach (KeyValuePair<Guid, Action<TcpClientContext, Boolean>> handler in _connectHandlers)
+                    {
+                        handler.Value(clientContext, true);
+                    }
                     _logger.DebugFormat(ClientConnectedMessagedTemplate, clientContext.Id, ((IPEndPoint)client.Client.LocalEndPoint).Address);
                 }
             }
@@ -471,6 +491,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         private TcpListener _tcpListener;
         private readonly ILog _logger;
         private readonly IList<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>  _clientsHandlers = new List<Tuple<TcpClientHandlerInfo, Func<Byte[], TcpClientHandlerInfo, Byte[]>>>();
+        private readonly IDictionary<Guid, Action<TcpClientContext, Boolean>> _connectHandlers = new Dictionary<Guid, Action<TcpClientContext, Boolean>>();
         private readonly IList<TcpClientContext> _tcpClients = new List<TcpClientContext>(); 
         private Boolean _interruptRequested;
     }
