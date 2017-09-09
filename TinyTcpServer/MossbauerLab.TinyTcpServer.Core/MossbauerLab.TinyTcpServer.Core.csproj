@@ -35,6 +35,9 @@
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Scripting">
+      <HintPath>..\packages\Microsoft.Net.Compilers.1.3.2\tools\Microsoft.CodeAnalysis.Scripting.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -49,6 +52,7 @@
     <Compile Include="Handlers\TcpClientHandlerInfo.cs" />
     <Compile Include="Handlers\Utils\TcpClientHandlerSelector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Server\FlexibleTcpServer.cs" />
     <Compile Include="Server\ITcpServer.cs" />
     <Compile Include="Server\TcpServer.cs" />
     <Compile Include="Server\TcpServerConfig.cs" />
