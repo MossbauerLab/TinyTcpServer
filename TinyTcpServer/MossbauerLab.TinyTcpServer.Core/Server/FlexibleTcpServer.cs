@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 
@@ -20,17 +21,34 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         public override Boolean Start()
         {
             Boolean result = base.Start();
-            Execute();
+            if (result)
+                Execute();
             return result;
+        }
+
+        public override void Stop(Boolean clearHandlers)
+        {
+            Terminate();
+            base.Stop(clearHandlers);
         }
 
         private void Execute()
         {
             String scriptCode = File.ReadAllText(_scriptFile);
-            _state = _state == null ? CSharpScript.RunAsync(scriptCode).Result : _state.ContinueWithAsync(scriptCode).Result;
+            _cancellationTokenSource = new CancellationTokenSource();
+            _state = _state == null
+                   ? CSharpScript.RunAsync(scriptCode, null, null, null, _cancellationTokenSource.Token).Result
+                   : _state.ContinueWithAsync(scriptCode, null, null, _cancellationTokenSource.Token).Result;
+        }
+
+        private void Terminate()
+        {
+            if (_state != null && _cancellationTokenSource != null)
+                _cancellationTokenSource.Cancel();
         }
 
         private ScriptState<Object> _state;
         private readonly String _scriptFile;
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
     }
 }
