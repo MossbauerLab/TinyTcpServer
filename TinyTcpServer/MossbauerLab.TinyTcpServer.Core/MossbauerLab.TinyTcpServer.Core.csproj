@@ -35,6 +35,9 @@
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp.Scripting">
+      <HintPath>..\packages\Microsoft.Net.Compilers.1.3.2\tools\Microsoft.CodeAnalysis.CSharp.Scripting.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Scripting">
       <HintPath>..\packages\Microsoft.Net.Compilers.1.3.2\tools\Microsoft.CodeAnalysis.Scripting.dll</HintPath>
     </Reference>

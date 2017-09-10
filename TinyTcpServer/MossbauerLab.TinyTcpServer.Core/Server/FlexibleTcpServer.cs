@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Threading;
+using System.Xml.Serialization;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 
@@ -37,14 +39,37 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             String scriptCode = File.ReadAllText(_scriptFile);
             _cancellationTokenSource = new CancellationTokenSource();
             _state = _state == null
-                   ? CSharpScript.RunAsync(scriptCode, null, null, null, _cancellationTokenSource.Token).Result
-                   : _state.ContinueWithAsync(scriptCode, null, null, _cancellationTokenSource.Token).Result;
+                   ? CSharpScript.RunAsync(scriptCode, GetScriptOptions(), null, null, _cancellationTokenSource.Token).Result
+                   : _state.ContinueWithAsync(scriptCode, GetScriptOptions(), null, _cancellationTokenSource.Token).Result;
+            SetVariables();
+
         }
 
         private void Terminate()
         {
             if (_state != null && _cancellationTokenSource != null)
                 _cancellationTokenSource.Cancel();
+        }
+
+        private ScriptOptions GetScriptOptions()
+        {
+            ScriptOptions options = ScriptOptions.Default;
+            // add all references
+            // assemblies
+            options.AddReferences(Assembly.GetAssembly(typeof(TcpServer)));
+            // namespaces
+            options.AddImports("MossbauerLab.TinyTcpServer.Core.Client");
+            options.AddImports("MossbauerLab.TinyTcpServer.Core.Handlers");
+            options.AddImports("MossbauerLab.TinyTcpServer.Core.Handlers.Utils");
+            return options;
+        }
+
+        private void SetVariables()
+        {
+            if (_state != null)
+            {
+                _state.Variables["_tcpServer"] = this;
+            }
         }
 
         private ScriptState<Object> _state;
