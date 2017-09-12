@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using System.Threading;
-using System.Xml.Serialization;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Reflection;
+using Microsoft.CSharp;
 
 namespace MossbauerLab.TinyTcpServer.Core.Server
 {
@@ -18,6 +18,9 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
                 throw new ApplicationException("script");
             // todo: umv : maybe check what is inside script (some functions presence)
             _scriptFile = scriptFile;
+            // compiler settings ...
+            _parameters.GenerateExecutable = false;
+            _parameters.GenerateInMemory = true;
         }
 
         public override Boolean Start()
@@ -30,7 +33,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
 
         public override void Stop(Boolean clearHandlers)
         {
-            Terminate();
+            //Terminate();
             base.Stop(clearHandlers);
         }
 
@@ -38,20 +41,20 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             String scriptCode = File.ReadAllText(_scriptFile);
             _cancellationTokenSource = new CancellationTokenSource();
-            _state = _state == null
+            /*_state = _state == null
                    ? CSharpScript.RunAsync(scriptCode, GetScriptOptions(), null, null, _cancellationTokenSource.Token).Result
                    : _state.ContinueWithAsync(scriptCode, GetScriptOptions(), null, _cancellationTokenSource.Token).Result;
-            SetVariables();
+            SetVariables();*/
 
         }
 
-        private void Terminate()
+/*        private void Terminate()
         {
             if (_state != null && _cancellationTokenSource != null)
                 _cancellationTokenSource.Cancel();
-        }
+        }*/
 
-        private ScriptOptions GetScriptOptions()
+/*        private ScriptOptions GetScriptOptions()
         {
             ScriptOptions options = ScriptOptions.Default;
             // add all references
@@ -62,17 +65,28 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             options.AddImports("MossbauerLab.TinyTcpServer.Core.Handlers");
             options.AddImports("MossbauerLab.TinyTcpServer.Core.Handlers.Utils");
             return options;
-        }
+        }*/
 
         private void SetVariables()
         {
-            if (_state != null)
+            /*if (_state != null)
             {
                 _state.Variables["_tcpServer"] = this;
-            }
+            }*/
         }
 
-        private ScriptState<Object> _state;
+        //private ScriptState<Object> _state;
+        private CSharpCodeProvider _provider = new CSharpCodeProvider(new Dictionary<String, String>()
+        {
+            {"CompilerVersion", "v4.0"}
+        });
+
+        private CompilerParameters _parameters = new CompilerParameters(new []
+        {
+            Assembly.GetAssembly(typeof(TcpServer)).Location
+        });
+
+
         private readonly String _scriptFile;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
     }
