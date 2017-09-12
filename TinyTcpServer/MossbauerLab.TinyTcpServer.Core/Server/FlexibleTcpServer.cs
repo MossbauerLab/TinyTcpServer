@@ -4,6 +4,7 @@ using System.Threading;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.CSharp;
 
 namespace MossbauerLab.TinyTcpServer.Core.Server
@@ -41,6 +42,12 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
         {
             String scriptCode = File.ReadAllText(_scriptFile);
             _cancellationTokenSource = new CancellationTokenSource();
+            CompilerResults results = _provider.CompileAssemblyFromSource(_parameters, new String[] {scriptCode});
+            if (!results.Errors.HasErrors)
+            {
+                // executing ...
+                Console.WriteLine("There is no errors!");
+            }
             /*_state = _state == null
                    ? CSharpScript.RunAsync(scriptCode, GetScriptOptions(), null, null, _cancellationTokenSource.Token).Result
                    : _state.ContinueWithAsync(scriptCode, GetScriptOptions(), null, _cancellationTokenSource.Token).Result;

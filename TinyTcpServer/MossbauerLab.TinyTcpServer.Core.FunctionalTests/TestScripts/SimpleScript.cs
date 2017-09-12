@@ -2,9 +2,9 @@ using System;
 
 
 
-public class ScriptEp
+public class ServerScript
 {
-	public static void Main(String[] argv)
+	public void StartProcessing()
 	{
 		
 	}
