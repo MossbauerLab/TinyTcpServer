@@ -8,17 +8,38 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
     [TestFixture]
     public class TestFlexibleTcpServer
     {
-        [Test]
-        public void TestScriptRun()
+
+        [TestCase(16, 1, true)]
+        [TestCase(32, 32, true)]
+        [TestCase(1024, 1, true)]
+        [TestCase(1024, 2, true)]
+        [TestCase(1024, 16, true)]
+        [TestCase(8192, 32, true)]
+        [TestCase(16384, 32, true)]
+        [TestCase(32768, 20, true)]
+        [TestCase(40000, 10, true)]
+        [TestCase(131072, 8, true)]
+        [TestCase(1048576, 2, true)]
+        [TestCase(16, 1, false)]
+        [TestCase(32, 32, false)]
+        [TestCase(1024, 1, false)]
+        [TestCase(1024, 2, false)]
+        [TestCase(1024, 16, false)]
+        [TestCase(8192, 32, false)]
+        [TestCase(16384, 32, false)]
+        [TestCase(32768, 20, false)]
+        [TestCase(40000, 10, false)]
+        [TestCase(131072, 8, false)]
+        [TestCase(1048576, 2, false)]
+        public void TestScriptRun(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
-            const String script = @"..\..\TestScripts\SimpleScript.cs";
-            _server = new FlexibleTcpServer(script, "127.0.0.1", 8044);
+            _server = new FlexibleTcpServer(Script, LocalIpAddress, ServerPort);
             Boolean result = _server.Start();
             Assert.IsTrue(result, "Checking that result is true");
-            using (TransportClient client = new TransportClient(true, "127.0.0.1", 8044))
+            using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort))
             {
                 client.Open();
-                ExchangeWithRandomDataAndCheck(client, 2055, 1);
+                ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
                 client.Close();
             }
             Assert.DoesNotThrow(() => _server.Stop(true), "Checking that server correctly stops");
@@ -61,6 +82,10 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
                 Assert.AreEqual(expectedData[counter], actualData[counter], String.Format("Checking that arrays bytes are equals at index {0}, at exchange cycle {1}", counter, cycle + 1));
         }
 
+        private const String LocalIpAddress = "127.0.0.1";
+        private const UInt16 ServerPort = 8044;
+        private const String Script = @"..\..\TestScripts\SimpleScript.cs";
+        
         private ITcpServer _server;
     }
 }
