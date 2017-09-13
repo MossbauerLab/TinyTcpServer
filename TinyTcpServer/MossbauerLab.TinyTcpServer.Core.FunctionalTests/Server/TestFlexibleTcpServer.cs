@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using MossbauerLab.TinyTcpServer.Core.Server;
 using NUnit.Framework;
 
@@ -11,7 +8,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
     public class TestFlexibleTcpServer
     {
         [Test]
-        public void TestScripyRun()
+        public void TestScriptRun()
         {
             const String script = @"..\..\TestScripts\SimpleScript.cs";
             _server = new FlexibleTcpServer(script);

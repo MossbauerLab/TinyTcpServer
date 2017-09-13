@@ -1,11 +1,18 @@
 using System;
+using MossbauerLab.TinyTcpServer.Core.Server;
 
-
-
-public class ServerScript
+namespace MossbauerLab.Flexibility
 {
-	public void StartProcessing()
+	public class ServerScript
 	{
+		public void Init(ref ITcpServer server)
+		{
+			if(server == null)
+				throw new NullReferenceException("server");
+			_server = server;
+			Console.WriteLine("Init....");
+		}
 		
+		private ITcpServer _server;
 	}
 }

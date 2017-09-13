@@ -4,7 +4,6 @@ using System.Threading;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Microsoft.CSharp;
 
 namespace MossbauerLab.TinyTcpServer.Core.Server
@@ -47,12 +46,13 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             {
                 // executing ...
                 Console.WriteLine("There is no errors!");
+                Type mainType = results.CompiledAssembly.GetType(ScriptEntryType);
+                MethodInfo methodInfo = mainType.GetMethod("Init");
+                if(methodInfo == null)
+                    throw new ApplicationException(String.Format("Script do not contain Init method in {0}", ScriptEntryType));
+                Object instance = Activator.CreateInstance(mainType);
+                methodInfo.Invoke(instance, new Object[] {this});
             }
-            /*_state = _state == null
-                   ? CSharpScript.RunAsync(scriptCode, GetScriptOptions(), null, null, _cancellationTokenSource.Token).Result
-                   : _state.ContinueWithAsync(scriptCode, GetScriptOptions(), null, _cancellationTokenSource.Token).Result;
-            SetVariables();*/
-
         }
 
 /*        private void Terminate()
@@ -93,6 +93,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             Assembly.GetAssembly(typeof(TcpServer)).Location
         });
 
+        public const String ScriptEntryType = "MossbauerLab.Flexibility.ServerScript";
 
         private readonly String _scriptFile;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
