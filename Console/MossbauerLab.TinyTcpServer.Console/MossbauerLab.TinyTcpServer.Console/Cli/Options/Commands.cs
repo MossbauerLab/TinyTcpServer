@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MossbauerLab.TinyTcpServer.Console.Cli.Options
 {
-    internal static class Commands
+    internal static class CommandsKeys
     {
-        public const String StartCommand = "--start";
-        public const String StopCommand = "--stop";
-        public const String RestartCommand = "--restart";
-        public const String HelpCommand = "--help";
-        public const String QuitCommand = "--quit";
+        public const String StartCommandKey = "--start";
+        public const String StopCommandKey = "--stop";
+        public const String RestartCommandKey = "--restart";
+        public const String HelpCommandKey = "--help";
+        public const String QuitCommandKey = "--quit";
     }
 }
