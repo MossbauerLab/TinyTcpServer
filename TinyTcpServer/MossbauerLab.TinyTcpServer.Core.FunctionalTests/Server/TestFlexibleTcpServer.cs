@@ -8,7 +8,6 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
     [TestFixture]
     public class TestFlexibleTcpServer
     {
-
         [TestCase(16, 1, true)]
         [TestCase(32, 32, true)]
         [TestCase(1024, 1, true)]
