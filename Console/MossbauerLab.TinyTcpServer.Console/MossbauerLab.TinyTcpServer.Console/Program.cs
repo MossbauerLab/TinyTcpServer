@@ -1,4 +1,5 @@
 ﻿using System;
+using MossbauerLab.TinyTcpServer.Console.Builders;
 using MossbauerLab.TinyTcpServer.Console.cli.Parser;
 using MossbauerLab.TinyTcpServer.Console.Cli.Data;
 using MossbauerLab.TinyTcpServer.Console.Cli.Options;
@@ -20,9 +21,11 @@ namespace MossbauerLab.TinyTcpServer.Console
     {
         public static void Main(String[] args)
         {
+            const UInt16 defaultPort = 6666;
             State serverState = State.Initial;
             Boolean terminate = false;
-            ITcpServer server;
+            ITcpServer server = null;
+            TcpServerConfig lastConfig;
             try
             {
                 while (!terminate)
@@ -35,27 +38,40 @@ namespace MossbauerLab.TinyTcpServer.Console
                     {
                         if (info.Command == CommandType.Quit)
                         {
+                            server = null;
                             terminate = true;
                         }
 
-                        else if (info.Command == CommandType.Start)
+                        else if (info.Command == CommandType.Start && serverState != State.Started)
                         {
-
+                            lastConfig = info.ScriptFile != null ? TcpServerConfigBuilder.Build(info.ScriptFile) : null;
+                            if(server == null || info.ScriptFile != null)
+                                server = new FlexibleTcpServer(info.ScriptFile, info.IpAddress, info.Port ?? defaultPort, null, false, lastConfig);
+                            serverState = State.Started;
+                            server.Start();
                         }
 
-                        else if (info.Command == CommandType.Stop)
+                        else if (info.Command == CommandType.Stop && serverState == State.Started)
                         {
-
+                            if(server!=null)
+                                server.Stop(true);
+                            serverState = State.Stopped;
                         }
 
-                        else if (info.Command == CommandType.Restart)
+                        else if (info.Command == CommandType.Restart && serverState == State.Started)
                         {
-
+                            if (server != null)
+                            {
+                                server.Stop(true);
+                                if (info.IpAddress != null && info.Port != null)
+                                    server.Start(info.IpAddress, info.Port.Value);
+                                else server.Start();
+                            }
                         }
 
                         else if (info.Command == CommandType.Help)
                         {
-
+                            // todo: umv: add help display
                         }
                     }
                 }
