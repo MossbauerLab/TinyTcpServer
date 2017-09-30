@@ -49,13 +49,13 @@ namespace MossbauerLab.TinyTcpServer.Console.cli.Parser
             String keyValueLower = keyValue.ToLower().Trim();
             if(!keyValueLower.Contains(KeyValueSeparator))
                 throw new ApplicationException(String.Format("Invalid data, expected separator \'{0}\' between key and value", KeyValueSeparator));
-            if (keyValueLower.StartsWith(CommandsOptions.IpAddressKey))
+            if (keyValueLower.StartsWith(KeySign + CommandsOptions.IpAddressKey))
                 info.IpAddress = Getvalue(keyValueLower);
-            else if (keyValueLower.StartsWith(CommandsOptions.PortKey))
+            else if (keyValueLower.StartsWith(KeySign + CommandsOptions.PortKey))
                 info.Port = UInt16.Parse(Getvalue(keyValueLower));
-            else if (keyValueLower.StartsWith(CommandsOptions.ScriptKey))
+            else if (keyValueLower.StartsWith(KeySign + CommandsOptions.ScriptKey))
                 info.ScriptFile = Getvalue(keyValueLower);
-            else if (keyValueLower.StartsWith(CommandsOptions.ServerSettingsKey))
+            else if (keyValueLower.StartsWith(KeySign + CommandsOptions.ServerSettingsKey))
                 info.SettingsFile = Getvalue(keyValueLower);
             else throw new ApplicationException("Invalid data, unexpected data key");
         }

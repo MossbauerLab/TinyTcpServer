@@ -40,11 +40,11 @@ namespace MossbauerLab.TinyTcpServer.Console.Tests.Parser
         {
             CommandInfo info = new CommandInfo();
             info.Command = _commands[command.ToLower()];
-            info.IpAddress = ipAddress;
+            info.IpAddress = ipAddress.Substring(ipAddress.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1);
             if(tcpPort != null)
-               info.Port = UInt16.Parse(tcpPort);
-            info.ScriptFile = scriptFile;
-            info.SettingsFile = settingsFile;
+               info.Port = UInt16.Parse(tcpPort.Substring(tcpPort.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1));
+            info.ScriptFile = scriptFile.Substring(scriptFile.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1);;
+            info.SettingsFile = settingsFile.Substring(settingsFile.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1);
             return info;
         }
 
@@ -65,5 +65,7 @@ namespace MossbauerLab.TinyTcpServer.Console.Tests.Parser
             {"--quit", CommandType.Restart},
             {"--help", CommandType.Restart},
         };
+
+        private const String KeyValueSeparator = "=";
     }
 }
