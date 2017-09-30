@@ -1,4 +1,6 @@
 ﻿using System;
+using log4net;
+using log4net.Config;
 using MossbauerLab.TinyTcpServer.Console.Builders;
 using MossbauerLab.TinyTcpServer.Console.cli.Parser;
 using MossbauerLab.TinyTcpServer.Console.Cli.Data;
@@ -46,9 +48,10 @@ namespace MossbauerLab.TinyTcpServer.Console
                         {
                             lastConfig = info.ScriptFile != null ? TcpServerConfigBuilder.Build(info.ScriptFile) : null;
                             if(server == null || info.ScriptFile != null)
-                                server = new FlexibleTcpServer(info.ScriptFile, info.IpAddress, info.Port ?? defaultPort, null, false, lastConfig);
+                                server = new FlexibleTcpServer(info.ScriptFile, info.IpAddress, info.Port ?? defaultPort, _logger, false, lastConfig);
                             serverState = State.Started;
                             server.Start();
+                            System.Console.WriteLine("Server started");
                         }
 
                         else if (info.Command == CommandType.Stop && serverState == State.Started)
@@ -56,6 +59,7 @@ namespace MossbauerLab.TinyTcpServer.Console
                             if(server!=null)
                                 server.Stop(true);
                             serverState = State.Stopped;
+                            System.Console.WriteLine("Server stopped");
                         }
 
                         else if (info.Command == CommandType.Restart && serverState == State.Started)
@@ -66,12 +70,18 @@ namespace MossbauerLab.TinyTcpServer.Console
                                 if (info.IpAddress != null && info.Port != null)
                                     server.Start(info.IpAddress, info.Port.Value);
                                 else server.Start();
+                                System.Console.WriteLine("Server restarted");
                             }
                         }
 
                         else if (info.Command == CommandType.Help)
                         {
                             // todo: umv: add help display
+                        }
+
+                        else
+                        {
+                            System.Console.WriteLine("Unable to perform selected operation");
                         }
                     }
                 }
@@ -81,7 +91,14 @@ namespace MossbauerLab.TinyTcpServer.Console
                 System.Console.WriteLine("An error occured during server work: " + e.Message);
                 throw;
             }
-           
         }
+
+        private static void InitLogger()
+        {
+            XmlConfigurator.Configure();
+            _logger = LogManager.GetLogger(typeof(Program));
+        }
+
+        private static ILog _logger;
     }
 }

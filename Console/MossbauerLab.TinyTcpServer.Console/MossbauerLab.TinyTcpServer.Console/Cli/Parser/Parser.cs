@@ -6,7 +6,7 @@ using MossbauerLab.TinyTcpServer.Console.Cli.Options;
 
 namespace MossbauerLab.TinyTcpServer.Console.cli.Parser
 {
-    static class Parser
+    public static class Parser
     {
         public static CommandInfo Parse(String[] args)
         {
@@ -16,8 +16,8 @@ namespace MossbauerLab.TinyTcpServer.Console.cli.Parser
             IList<String> keyValuePairs = args.Where(line => !line.StartsWith(KeySign)).ToList();
             if (keys.Count == 0)
                 throw new ApplicationException("Arguments list doesn't contains any key");
-            if(keys.Count != 1)
-                throw new ApplicationException("Expected only one arguments with key");
+            //if(keys.Count != 1)
+                //throw new ApplicationException("Expected only one arguments with key");
             if(!args[1].StartsWith(KeySign))
                 throw new ApplicationException("Arguments list must starts from key");
             CommandInfo info = new CommandInfo();
