@@ -35,6 +35,9 @@ namespace MossbauerLab.TinyTcpServer.Console.cli.Parser
         {
             Int32 keyLength = keyValue.IndexOf(KeyValueSeparator, StringComparison.InvariantCulture);
             String key = keyValue.Substring(0, keyLength).ToLower().Trim(TrimmingSymbols);
+            if(!key.StartsWith(KeySign))
+                throw new ApplicationException(String.Format("Key must begin from separator {0} symbols", KeySign));
+            key = key.Trim(KeySign[0]);
             if (key.Equals(CommandsOptions.IpAddressKey))
                 info.IpAddress = GetValue(keyValue);
             else if (key.Equals(CommandsOptions.PortKey))
@@ -58,7 +61,7 @@ namespace MossbauerLab.TinyTcpServer.Console.cli.Parser
         private const String KeySign = "--";
         private const String KeyValueSeparator = "=";
 
-        private static readonly Char[] TrimmingSymbols = {' ', '\t', '-', '\n', '\r'};
+        private static readonly Char[] TrimmingSymbols = {' ', '\t', '\n', '\r'};
 
         private static readonly IDictionary<String, CommandType> Operations = new Dictionary<String, CommandType>()
         {

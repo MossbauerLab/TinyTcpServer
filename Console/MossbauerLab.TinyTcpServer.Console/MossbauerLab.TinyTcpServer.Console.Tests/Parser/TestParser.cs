@@ -23,6 +23,18 @@ namespace MossbauerLab.TinyTcpServer.Console.Tests.Parser
             CheckCommandInfo(expectedInfo, actualInfo);
         }
 
+        [TestCase("-start", "--ipaddr=192.168.111.6", "--port=3999", "--script=EchoScript.cs", "--settings=serverSetting.txt")]
+        [TestCase("start", "--ipaddr=192.168.111.6", "--port=3999", "--script=EchoScript.cs", "--settings=serverSetting.txt")]
+        [TestCase("--start", "--ipaddr=192.168.111.6", "--port=3999", "--script=EchoScript.cs", "settings=serverSetting.txt")]
+        [TestCase("start", "ipaddr=192.168.111.6", "port=3999", "script=EchoScript.cs", "settings=serverSetting.txt")]
+        [TestCase("--start", "--ipaddr=192.168.111.6", "--port=3000", "--script=EchoScript.cs", "--invalidKey=serverSetting.txt")]
+        [TestCase("--start", "--ipaddr=192.168.111.6", "--port=3000", "--script=EchoScript.cs", "invalidKey=serverSetting.txt")]
+        public void TestParseFailsIncorrectArgsSyntax(String runOption, String ipAddress, String tcpPort, String scriptFile, String settingsFile)
+        {
+            String[] cmdLineArgs = BuildCmdLine(runOption, ipAddress, tcpPort, scriptFile, settingsFile);
+            Assert.Throws<ApplicationException>(() => cli.Parser.Parser.Parse(cmdLineArgs), "checking that parser throws");
+        }
+
         private String[] BuildCmdLine(String option1, String option2, String option3, String option4, String option5)
         {
             IList<String> options = new List<String>();
