@@ -9,11 +9,11 @@ namespace MossbauerLab.TinyTcpServer.Console.Cli.Validator
         public static Boolean Validate(CommandInfo info, Boolean inited = false)
         {
             if (info.Command == CommandType.Stop)
-                return CheckStopInfo(info);
+                return CheckStopInfo(info, inited);
             if (info.Command == CommandType.Start)
                 return CheckStartInfo(info, inited);
             if (info.Command == CommandType.Restart)
-                return CheckRestartInfo(info);
+                return CheckRestartInfo(info, inited);
             if ((info.Command == CommandType.Help) || (info.Command == CommandType.Quit))
                 return CheckAllFieldsAreNull(info);
             return false;
@@ -27,15 +27,15 @@ namespace MossbauerLab.TinyTcpServer.Console.Cli.Validator
             return info.ScriptFile == null && info.SettingsFile == null;
         }
 
-        private static Boolean CheckStopInfo(CommandInfo info)
+        private static Boolean CheckStopInfo(CommandInfo info, Boolean inited)
         {
             // we are not expecting any other argument here
-            return CheckAllFieldsAreNull(info);
+            return CheckAllFieldsAreNull(info) && inited;
         }
 
-        private static Boolean CheckRestartInfo(CommandInfo info)
+        private static Boolean CheckRestartInfo(CommandInfo info, Boolean inited)
         {
-            return info.ScriptFile == null && info.SettingsFile == null;
+            return info.ScriptFile == null && info.SettingsFile == null && inited;
         }
 
         private static Boolean CheckAllFieldsAreNull(CommandInfo info)
