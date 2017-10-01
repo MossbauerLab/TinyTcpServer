@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using MossbauerLab.TinyTcpServer.Console.Cli.Data;
 using MossbauerLab.TinyTcpServer.Console.Cli.Options;
 using NUnit.Framework;
@@ -11,7 +10,11 @@ namespace MossbauerLab.TinyTcpServer.Console.Tests.Parser
     [TestFixture]
     public class TestParser
     {
-        [TestCase ("--start", "--ipaddr=192.168.111.6", "--port=3999", "--script=EchoScript.cs", "--settings=serverSetting.txt")]
+        [TestCase("--start", "--ipaddr=192.168.111.6", "--port=3999", "--script=EchoScript.cs", "--settings=serverSetting.txt")]
+        [TestCase("--StARt", "--IpaddR=192.168.111.6", "   --PORT=3999\t   ", "   --script=EchoScript.cs    ", "\t--SeTtInGs=serverSetting.txt")]
+        [TestCase("--stop", null, null, null, null)]
+        [TestCase("--StOp", null, null, null, null)]
+        [TestCase("--restart", null, null, "--script=FtpScript.cs", "--settings=ftpServerSetting.txt")]
         public void TestSuccessfulParse(String runOption, String ipAddress, String tcpPort, String scriptFile, String settingsFile)
         {
             String[] cmdLineArgs = BuildCmdLine(runOption, ipAddress, tcpPort, scriptFile, settingsFile);
@@ -40,11 +43,17 @@ namespace MossbauerLab.TinyTcpServer.Console.Tests.Parser
         {
             CommandInfo info = new CommandInfo();
             info.Command = _commands[command.ToLower()];
-            info.IpAddress = ipAddress.Substring(ipAddress.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1);
+            info.IpAddress = ipAddress != null
+                           ? ipAddress.Substring(ipAddress.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1)
+                           : null;
             if(tcpPort != null)
                info.Port = UInt16.Parse(tcpPort.Substring(tcpPort.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1));
-            info.ScriptFile = scriptFile.Substring(scriptFile.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1);;
-            info.SettingsFile = settingsFile.Substring(settingsFile.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1);
+            info.ScriptFile = scriptFile != null
+                            ? scriptFile.Substring(scriptFile.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1)
+                            : null;
+            info.SettingsFile = settingsFile != null
+                              ? settingsFile.Substring(settingsFile.IndexOf(KeyValueSeparator, StringComparison.CurrentCulture) + 1)
+                              : null;
             return info;
         }
 

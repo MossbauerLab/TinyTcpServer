@@ -25,7 +25,7 @@ namespace MossbauerLab.TinyTcpServer.Console.cli.Parser
 
         private static void FillCommandType(CommandInfo info, String command)
         {
-            String commandLowerCase = command.ToLower();
+            String commandLowerCase = command.ToLower().Trim();
             if(!Operations.ContainsKey(commandLowerCase))
                 throw new ApplicationException("Unexpected command");
             info.Command = Operations[commandLowerCase];
