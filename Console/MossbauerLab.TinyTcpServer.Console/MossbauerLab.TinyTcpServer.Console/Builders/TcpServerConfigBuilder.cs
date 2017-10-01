@@ -16,7 +16,7 @@ namespace MossbauerLab.TinyTcpServer.Console.Builders
                 throw new ApplicationException("Config file does not exists");
             IList<String> content = File.ReadAllLines(serverConfig).Select(line=>line.Trim().ToLower())
                                                                    .Where(line => !String.IsNullOrEmpty(line))
-                                                                   .Where(line => line.StartsWith(CommentarySymbol))
+                                                                   .Where(line => !line.StartsWith(CommentarySymbol))
                                                                    .ToList();
             TcpServerConfig config = new TcpServerConfig();
             Int32 value = GetConfigurationValue(content, ParallelTaskKey);
@@ -56,7 +56,7 @@ namespace MossbauerLab.TinyTcpServer.Console.Builders
         {
             try
             {
-                String configLine = fileContent.FirstOrDefault(line => line.StartsWith(key.ToLower()));
+                String configLine = fileContent.FirstOrDefault(line => line.ToLower().StartsWith(key.ToLower()));
                 if (configLine == null)
                     return -1;
                 Int32 index = configLine.IndexOf(KeyValueSeparator, StringComparison.InvariantCulture);
@@ -71,7 +71,7 @@ namespace MossbauerLab.TinyTcpServer.Console.Builders
             }
         }
 
-        private const String KeyValueSeparator = ":";
+        private const String KeyValueSeparator = "=";
         private const String CommentarySymbol = "#";
 
         private const String ParallelTaskKey = "ParallelTask";
