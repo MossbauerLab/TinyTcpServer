@@ -41,11 +41,12 @@ namespace MossbauerLab.TinyTcpServer.Console
                     {
                         if (info.Command == CommandType.Quit)
                         {
-                            server = null;
+                            System.Console.WriteLine("Exit from management console");
                             terminate = true;
+                            continue;
                         }
 
-                        else if (info.Command == CommandType.Start && serverState != State.Started)
+                        if (info.Command == CommandType.Start && serverState != State.Started)
                         {
                             lastConfig = info.ScriptFile != null ? TcpServerConfigBuilder.Build(info.ScriptFile) : null;
                             if(server == null || info.ScriptFile != null)
@@ -79,9 +80,6 @@ namespace MossbauerLab.TinyTcpServer.Console
                         {
                             // todo: umv: add help display
                         }
-
-                        else if (info.Command == CommandType.Quit)
-                            terminate = true;
 
                         else
                         {

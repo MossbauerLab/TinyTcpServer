@@ -68,8 +68,8 @@ namespace MossbauerLab.TinyTcpServer.Console.cli.Parser
             {Command.StartCommandKey, CommandType.Start},
             {Command.StopCommandKey, CommandType.Stop},
             {Command.RestartCommandKey, CommandType.Restart},
-            {Command.HelpCommandKey, CommandType.Quit},
-            {Command.QuitCommandKey, CommandType.Help}
+            {Command.QuitCommandKey, CommandType.Quit},
+            {Command.HelpCommandKey, CommandType.Help}
         };
     }
 }
