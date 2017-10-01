@@ -48,7 +48,7 @@ namespace MossbauerLab.TinyTcpServer.Console
 
                         if (info.Command == CommandType.Start && serverState != State.Started)
                         {
-                            lastConfig = info.ScriptFile != null ? TcpServerConfigBuilder.Build(info.ScriptFile) : null;
+                            lastConfig = info.SettingsFile != null ? TcpServerConfigBuilder.Build(info.SettingsFile) : null;
                             if(server == null || info.ScriptFile != null)
                                 server = new FlexibleTcpServer(info.ScriptFile, info.IpAddress, info.Port ?? defaultPort, _logger, false, lastConfig);
                             serverState = State.Started;
