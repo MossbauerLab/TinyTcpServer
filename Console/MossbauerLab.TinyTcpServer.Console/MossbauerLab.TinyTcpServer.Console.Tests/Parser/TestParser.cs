@@ -11,7 +11,7 @@ namespace MossbauerLab.TinyTcpServer.Console.Tests.Parser
     [TestFixture]
     public class TestParser
     {
-        [TestCase ("--start", "--ip=192.168.111.6", "--port=3999", "--script=EchoScript.cs", "--setting=serverSetting.txt")]
+        [TestCase ("--start", "--ipaddr=192.168.111.6", "--port=3999", "--script=EchoScript.cs", "--settings=serverSetting.txt")]
         public void TestSuccessfulParse(String runOption, String ipAddress, String tcpPort, String scriptFile, String settingsFile)
         {
             String[] cmdLineArgs = BuildCmdLine(runOption, ipAddress, tcpPort, scriptFile, settingsFile);

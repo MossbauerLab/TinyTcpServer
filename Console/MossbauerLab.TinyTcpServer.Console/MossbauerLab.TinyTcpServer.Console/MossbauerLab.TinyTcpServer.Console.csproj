@@ -68,7 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Builders\TcpServerConfigBuilder.cs" />
-    <Compile Include="Cli\Options\Commands.cs" />
+    <Compile Include="Cli\Options\Command.cs" />
     <Compile Include="Cli\Options\CommandsOptions.cs" />
     <Compile Include="Cli\Data\CommandInfo.cs" />
     <Compile Include="Cli\Options\CommandType.cs" />

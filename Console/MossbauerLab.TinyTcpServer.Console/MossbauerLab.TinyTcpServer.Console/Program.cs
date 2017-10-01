@@ -30,9 +30,10 @@ namespace MossbauerLab.TinyTcpServer.Console
             TcpServerConfig lastConfig;
             try
             {
+                String[] userInput = args;
                 while (!terminate)
                 {
-                    CommandInfo info = Parser.Parse(args);
+                    CommandInfo info = Parser.Parse(userInput);
                     Boolean result = Validator.Validate(info, serverState >= State.Initialized);
                     if (!result)
                         System.Console.WriteLine("Incorrect syntax, see --help for details");
@@ -79,11 +80,19 @@ namespace MossbauerLab.TinyTcpServer.Console
                             // todo: umv: add help display
                         }
 
+                        else if (info.Command == CommandType.Quit)
+                            terminate = true;
+
                         else
                         {
                             System.Console.WriteLine("Unable to perform selected operation");
                         }
                     }
+                    System.Console.WriteLine("Waiting for next command, or --quit for exit, see --help");
+                    String input = System.Console.ReadLine();
+                    if(input == null)
+                        throw new ApplicationException("User input is null");
+                    userInput = input.Split(' ');
                 }
             }
             catch (Exception e)
