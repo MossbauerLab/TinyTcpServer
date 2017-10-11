@@ -76,6 +76,7 @@
     <Compile Include="Cli\Validator\Validator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StateMachine\IStateMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
