@@ -79,7 +79,9 @@
     <Compile Include="StateMachine\IExecutableState.cs" />
     <Compile Include="StateMachine\IStateMachine.cs" />
     <Compile Include="StateMachine\MealyMachine.cs" />
+    <Compile Include="StateMachine\States\IState.cs" />
     <Compile Include="StateMachine\States\StartState.cs" />
+    <Compile Include="StateMachine\States\State.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
