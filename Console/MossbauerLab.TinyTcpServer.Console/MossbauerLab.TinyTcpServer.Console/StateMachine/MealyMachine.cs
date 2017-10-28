@@ -1,12 +1,13 @@
 ﻿using System;
+using MossbauerLab.TinyTcpServer.Console.StateMachine.States;
 
 namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 {
-    public abstract class MealyMachine : IStateMachine
+    public abstract class MealyMachine : IStateMachine<MachineState, String>
     {
-        public abstract Boolean Add<TS, TI>(Func<TS, TI, Boolean> transitionChecker, Guid stateId, TS newState, TI input) where TS : IComparable;
+        public abstract Boolean Add(Func<MachineState, String, Boolean> transitionChecker, Guid stateId, MachineState newState, String input);
 
-        public bool Add<TS>(Func<TS, Boolean> transitionChecker, Guid stateId, TS newState) where TS : IComparable
+        public bool Add(Func<MachineState, Boolean> transitionChecker, Guid stateId, MachineState newState)
         {
             throw new InvalidOperationException("This operation is for Moore machine only");
         }
