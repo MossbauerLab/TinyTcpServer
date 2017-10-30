@@ -79,9 +79,10 @@
     <Compile Include="StateMachine\IExecutableState.cs" />
     <Compile Include="StateMachine\IStateMachine.cs" />
     <Compile Include="StateMachine\MealyMachine.cs" />
-    <Compile Include="StateMachine\States\IState.cs" />
-    <Compile Include="StateMachine\States\StartState.cs" />
-    <Compile Include="StateMachine\States\State.cs" />
+    <Compile Include="StateMachine\States\IExecutableState.cs" />
+    <Compile Include="StateMachine\States\MachineState.cs" />
+    <Compile Include="StateMachine\States\TcpServerState.cs" />
+    <Compile Include="StateMachine\TcpServerStateMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

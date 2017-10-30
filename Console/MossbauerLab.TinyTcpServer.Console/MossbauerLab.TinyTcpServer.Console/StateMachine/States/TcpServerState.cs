@@ -22,9 +22,14 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine.States
             return -1;
         }
 
-        public Boolean Execute(Func<ITcpServer, MachineState, Boolean> executer, Object[] args)
+        public Boolean Execute(Func<ITcpServer, MachineState, Object[], Boolean> executer, Object[] args)
         {
-            return executer((ITcpServer)args[0], (MachineState)args[1]);
+            if (args.Length < 2)
+                throw new ArgumentException("args must contains at least 2 elements");
+            Object[] additionalParams = new Object[args.Length - 2];
+            if (args.Length > 2)
+                Array.Copy(args, 2, additionalParams, 0, additionalParams.Length);
+            return executer((ITcpServer) args[0], (MachineState) args[1], additionalParams);
         }
 
         public MachineState GetState()
