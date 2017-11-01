@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -68,8 +67,30 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 
         public override Boolean Run(StringBuilder input)
         {
-            return false;
-            //_transitionCheckers.Where()
+            TcpServerMachineTransition transition = _transitionFunc(_currentState, input);
+            if (transition.StopMachine)
+            {
+                // quit
+                return false;
+            }
+            if (!transition.IsValid)
+            {
+                // not valid commands, notify user ...
+                return true;
+            }
+            if (transition.StatesSequence == null)
+            {
+                // display help
+            }
+            else
+            {
+                foreach (Tuple<TcpServerState, Object[]> state in transition.StatesSequence)
+                {
+
+                }
+            }
+
+            return true;
         }
 
         private Boolean ExecuteStartState(ITcpServer server, Object[] args)
