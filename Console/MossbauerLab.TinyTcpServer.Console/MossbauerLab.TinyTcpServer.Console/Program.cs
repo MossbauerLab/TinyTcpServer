@@ -10,15 +10,6 @@ using MossbauerLab.TinyTcpServer.Core.Server;
 
 namespace MossbauerLab.TinyTcpServer.Console
 {
-    [Flags]
-    public enum State
-    {
-        Initial,
-        Initialized,
-        Started,
-        Stopped
-    }
-
     public class Program
     {
         public static void Main(String[] args)

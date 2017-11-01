@@ -2,14 +2,19 @@
 
 namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 {
-    public abstract class MealyMachine<TS, TI> : IStateMachine<TS, TI>
+    public abstract class MealyMachine<TS, TI, TR> : IStateMachine<TS, TI, TR>
         where TS : IComparable
         where TI : class
     {
-        public abstract Boolean Add(Guid checkerId, Func<TS, TS, Object[], Boolean> transitionChecker);
+        public abstract Boolean AddState(TS state);
+        public abstract Boolean RemoveState(TS state);
+        public abstract Boolean SetTransitions(Func<TS, TI, TR> transitions);     // Mealy machine
 
-        public abstract Boolean Remove(Guid checkerId);
+        public Boolean SetTransitions(Func<TS, TR> transitions)
+        {
+            throw new InvalidOperationException("This operation is not valid for Melay machine");
+        }
 
-        public abstract void Run(ref Boolean terminate, TI input);
+        public abstract Boolean Run(TI input);
     }
 }

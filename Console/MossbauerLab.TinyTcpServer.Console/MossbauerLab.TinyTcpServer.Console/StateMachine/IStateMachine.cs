@@ -1,14 +1,15 @@
 ﻿using System;
-using System.Text;
 
 namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 {
-    public interface IStateMachine<TS, TI> 
+    public interface IStateMachine<TS, TI, TR> 
         where TS: IComparable 
         where TI: class
     {
-        Boolean Add(Guid checkerId, Func<TS, TS, Object[], Boolean> transitionChecker);            // for Mealy state machine : TS is state, TI is input
-        Boolean Remove(Guid checkerId);
-        void Run(ref Boolean terminate, TI input);
+        Boolean AddState(TS state);
+        Boolean RemoveState(TS state);
+        Boolean SetTransitions(Func<TS, TI, TR> transitions);     // Mealy machine
+        Boolean SetTransitions(Func<TS, TR> transitions);         // Moore machine
+        Boolean Run(TI input);
     }
 }

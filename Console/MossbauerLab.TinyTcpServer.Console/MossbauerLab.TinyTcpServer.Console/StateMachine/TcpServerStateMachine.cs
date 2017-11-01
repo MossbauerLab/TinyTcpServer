@@ -1,49 +1,78 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MossbauerLab.TinyTcpServer.Console.cli.Parser;
+using MossbauerLab.TinyTcpServer.Console.Cli.Data;
+using MossbauerLab.TinyTcpServer.Console.Cli.Options;
+using MossbauerLab.TinyTcpServer.Console.Cli.Validator;
 using MossbauerLab.TinyTcpServer.Console.StateMachine.States;
 using MossbauerLab.TinyTcpServer.Core.Server;
 
 namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 {
-    public class TcpServerStateMachine : MealyMachine<TcpServerState, StringBuilder>
+    public  class TcpServerMachineTransition
+    {
+        public TcpServerMachineTransition(Boolean isvalid, Boolean stopMachine, 
+                                          IList<Tuple<TcpServerState, Object[]>>  statesSequence)
+        {
+            IsValid = isvalid;
+            StopMachine = stopMachine;
+            StatesSequence = statesSequence;
+        }
+
+        public Boolean IsValid { get; private set; }
+        public Boolean StopMachine { get; private set; }
+        public IList<Tuple<TcpServerState, Object[]>> StatesSequence { get; private set; }
+    }
+
+    public class TcpServerStateMachine : MealyMachine <MachineState, StringBuilder, TcpServerMachineTransition>
     {
         public TcpServerStateMachine(ITcpServer server)
         {
             if(server == null)
                 throw new ArgumentNullException("server");
             _server = server;
-            _states.Add(new TcpServerState(MachineState.Initial));
-            _states.Add(new TcpServerState(MachineState.Started));
-            _states.Add(new TcpServerState(MachineState.Stopped));
         }
 
-        public override Boolean Add(Guid checkerId, Func<TcpServerState, TcpServerState, Object[], Boolean> transitionChecker)
+        public void DefaultInit()
         {
-            _transitionCheckers[checkerId] = transitionChecker;
+            AddState(MachineState.Initial);
+            AddState(MachineState.Started);
+            AddState(MachineState.Stopped);
+            SetTransitions(DefaultTransitions);
         }
 
-        public override Boolean Remove(Guid checkerId)
+        public override Boolean AddState(MachineState state)
         {
-            if (!_transitionCheckers.ContainsKey(checkerId))
+            if (_states.Any(item => item == state))
                 return false;
-            _transitionCheckers.Remove(checkerId);
+            _states.Add(state);
             return true;
         }
 
-        public override void Run(ref Boolean terminate, StringBuilder input)
+        public override Boolean RemoveState(MachineState state)
         {
-            if (terminate)
-            {
-                _server.Stop(true);
-                return;
-            }
+            if (!_states.Contains(state))
+                return false;
+            _states.Remove(state);
+            return true;
+        }
+
+        public override Boolean SetTransitions(Func<MachineState, StringBuilder, TcpServerMachineTransition> transitions)
+        {
+            _transitionFunc = transitions;
+            return true;
+        }
+
+        public override Boolean Run(StringBuilder input)
+        {
+            return false;
             //_transitionCheckers.Where()
         }
 
-        private Boolean ExecuteStartState(ITcpServer server, MachineState state, Object[] args)
+        private Boolean ExecuteStartState(ITcpServer server, Object[] args)
         {
             Boolean result;
             if (args.Length == 2)
@@ -59,18 +88,64 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
             return result;
         }
 
-        private Boolean ExecuteStopState(ITcpServer server, MachineState state, Object[] args)
+        private Boolean ExecuteStopState(ITcpServer server, Object[] args)
         {
             server.Stop(true);
             _currentState = MachineState.Stopped;
             return true;
         }
 
+        private TcpServerMachineTransition DefaultTransitions(MachineState state, StringBuilder input)
+        {
+            CommandInfo info = Parser.Parse(input.ToString().Split(' '));
+            Boolean result = Validator.Validate(info, state >= MachineState.Initialized);
+            if(!result)
+                return new TcpServerMachineTransition(false, false, null);
+            if (info.Command == CommandType.Quit)
+            {
+                if (state == MachineState.Started)
+                    return new TcpServerMachineTransition(true, true,
+                        new List<Tuple<TcpServerState, Object[]>>()
+                        {
+                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null)
+                        });
+                return new TcpServerMachineTransition(true, true, null);
+            }
+            if (info.Command == CommandType.Start && state != MachineState.Started)
+            {
+                return new TcpServerMachineTransition(true, false,
+                        new List<Tuple<TcpServerState, Object[]>>()
+                        {
+                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Started), 
+                                                                new Object[]{info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile})
+                        });
+            }
+            if (info.Command == CommandType.Stop && state == MachineState.Started)
+            {
+                return new TcpServerMachineTransition(true, false,
+                        new List<Tuple<TcpServerState, Object[]>>()
+                        {
+                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null)
+                        });
+            }
+            if (info.Command == CommandType.Restart && state == MachineState.Started)
+            {
+                return new TcpServerMachineTransition(true, false,
+                        new List<Tuple<TcpServerState, Object[]>>()
+                        {
+                             new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null),
+                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Started), 
+                                                                new Object[]{info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile})
+                        });
+            }
+            if (info.Command == CommandType.Help)
+                return new TcpServerMachineTransition(true, false, null);
+            return new TcpServerMachineTransition(false, false, null);
+        }
+
         private ITcpServer _server;
         private MachineState _currentState = MachineState.Initial;
-        private readonly IList<IExecutableState<ITcpServer, MachineState, Boolean>> _states = new List<IExecutableState<ITcpServer, MachineState, Boolean>>();
-
-        private readonly IDictionary<Guid, Func<TcpServerState, TcpServerState, Object[], Boolean>> _transitionCheckers =
-                new Dictionary<Guid, Func<TcpServerState, TcpServerState, Object[], Boolean>>();
+        private Func<MachineState, StringBuilder, TcpServerMachineTransition> _transitionFunc;
+        private readonly IList<MachineState> _states = new List<MachineState>();
     }
 }
