@@ -86,14 +86,17 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
             {
                 foreach (Tuple<TcpServerState, Object[]> state in transition.StatesSequence)
                 {
-
+                    if (state.Item1.GetState() == MachineState.Started)
+                        state.Item1.Execute(ExecuteStartState, ref _server, state.Item2);
+                    if (state.Item1.GetState() == MachineState.Stopped)
+                        state.Item1.Execute(ExecuteStopState, ref _server, state.Item2);
                 }
             }
 
             return true;
         }
 
-        private Boolean ExecuteStartState(ITcpServer server, Object[] args)
+        private Boolean ExecuteStartState(ref ITcpServer server, Object[] args)
         {
             Boolean result;
             if (args.Length == 2)
@@ -109,7 +112,7 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
             return result;
         }
 
-        private Boolean ExecuteStopState(ITcpServer server, Object[] args)
+        private Boolean ExecuteStopState(ref ITcpServer server, Object[] args)
         {
             server.Stop(true);
             _currentState = MachineState.Stopped;
