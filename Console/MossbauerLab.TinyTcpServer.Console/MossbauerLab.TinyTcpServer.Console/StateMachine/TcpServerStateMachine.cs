@@ -109,19 +109,21 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
             if (args.Length >= 2)
             {
                 String ipAddress = args[0] as String;
-                UInt16 port = (UInt16) args[1];
+                UInt16 port = Convert.ToUInt16(args[1]);
                 String settingsFile = args[2] as String;
                 String scriptFile = args[3] as String;
                 TcpServerConfig config = settingsFile != null ? TcpServerConfigBuilder.Build(settingsFile) : null;
                 if(server == null || scriptFile != null)
                     server = new FlexibleTcpServer(scriptFile, ipAddress, port, _logger, false, config);
                 result = server.Start(ipAddress, port);
+                if (result)
+                    System.Console.WriteLine(serverStartFormat, ipAddress, port);
                 _currentState = result ? MachineState.Started : _currentState;
-                System.Console.WriteLine(serverStartFormat, ipAddress, port);
-                System.Console.WriteLine("=================> Server was started");
                 return result;
             }
             result = server.Start();
+            if (result)
+                System.Console.WriteLine("=================> Server was started");
             _currentState = result ? MachineState.Started : _currentState;
             return result;
         }
@@ -138,50 +140,62 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 
         private TcpServerMachineTransition DefaultTransitions(MachineState state, StringBuilder input)
         {
-            CommandInfo info = Parser.Parse(input.ToString().Split(' '));
-            Boolean result = Validator.Validate(info, state >= MachineState.Initialized);
-            if(!result)
+            try
+            {
+                System.Console.WriteLine("input is : " + input);
+                CommandInfo info = Parser.Parse(input.ToString().Split(' '));
+                Boolean result = Validator.Validate(info, _server != null);
+                if (!result)
+                {
+                    System.Console.WriteLine("Parsing is invalid");
+                    return new TcpServerMachineTransition(false, false, null);
+                }
+                if (info.Command == CommandType.Quit)
+                {
+                    if (state == MachineState.Started)
+                        return new TcpServerMachineTransition(true, true,
+                            new List<Tuple<TcpServerState, Object[]>>()
+                            {
+                                new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null)
+                            });
+                    return new TcpServerMachineTransition(true, true, null);
+                }
+                if (info.Command == CommandType.Start && state != MachineState.Started)
+                {
+                    return new TcpServerMachineTransition(true, false,
+                        new List<Tuple<TcpServerState, Object[]>>()
+                        {
+                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Started),
+                                new Object[] {info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile})
+                        });
+                }
+                if (info.Command == CommandType.Stop && state == MachineState.Started)
+                {
+                    return new TcpServerMachineTransition(true, false,
+                        new List<Tuple<TcpServerState, Object[]>>()
+                        {
+                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null)
+                        });
+                }
+                if (info.Command == CommandType.Restart && state == MachineState.Started)
+                {
+                    return new TcpServerMachineTransition(true, false,
+                        new List<Tuple<TcpServerState, Object[]>>()
+                        {
+                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null),
+                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Started),
+                                new Object[] {info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile})
+                        });
+                }
+                if (info.Command == CommandType.Help)
+                    return new TcpServerMachineTransition(true, false, null);
                 return new TcpServerMachineTransition(false, false, null);
-            if (info.Command == CommandType.Quit)
-            {
-                if (state == MachineState.Started)
-                    return new TcpServerMachineTransition(true, true,
-                        new List<Tuple<TcpServerState, Object[]>>()
-                        {
-                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null)
-                        });
-                return new TcpServerMachineTransition(true, true, null);
             }
-            if (info.Command == CommandType.Start && state != MachineState.Started)
+            catch (ApplicationException)
             {
-                return new TcpServerMachineTransition(true, false,
-                        new List<Tuple<TcpServerState, Object[]>>()
-                        {
-                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Started), 
-                                                                new Object[]{info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile})
-                        });
+                System.Console.WriteLine("THROWS!!!");
+                return new TcpServerMachineTransition(false, false, null);
             }
-            if (info.Command == CommandType.Stop && state == MachineState.Started)
-            {
-                return new TcpServerMachineTransition(true, false,
-                        new List<Tuple<TcpServerState, Object[]>>()
-                        {
-                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null)
-                        });
-            }
-            if (info.Command == CommandType.Restart && state == MachineState.Started)
-            {
-                return new TcpServerMachineTransition(true, false,
-                        new List<Tuple<TcpServerState, Object[]>>()
-                        {
-                             new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null),
-                            new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Started), 
-                                                                new Object[]{info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile})
-                        });
-            }
-            if (info.Command == CommandType.Help)
-                return new TcpServerMachineTransition(true, false, null);
-            return new TcpServerMachineTransition(false, false, null);
         }
 
         private ILog _logger;
