@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using log4net;
 using log4net.Config;
 using MossbauerLab.TinyTcpServer.Console.Builders;
@@ -6,6 +7,7 @@ using MossbauerLab.TinyTcpServer.Console.cli.Parser;
 using MossbauerLab.TinyTcpServer.Console.Cli.Data;
 using MossbauerLab.TinyTcpServer.Console.Cli.Options;
 using MossbauerLab.TinyTcpServer.Console.Cli.Validator;
+using MossbauerLab.TinyTcpServer.Console.StateMachine;
 using MossbauerLab.TinyTcpServer.Core.Server;
 
 namespace MossbauerLab.TinyTcpServer.Console
@@ -14,15 +16,35 @@ namespace MossbauerLab.TinyTcpServer.Console
     {
         public static void Main(String[] args)
         {
-            const UInt16 defaultPort = 6666;
-            State serverState = State.Initial;
-            Boolean terminate = false;
-            ITcpServer server = null;
-            TcpServerConfig lastConfig;
+            //const UInt16 defaultPort = 6666;
+            //State serverState = State.Initial;
+            //Boolean terminate = false;
+            //ITcpServer server = null;
+            //TcpServerConfig lastConfig;
+
+            InitLogger();
+            TcpServerStateMachine machine = new TcpServerStateMachine(null, _logger);
+
             try
             {
-                String[] userInput = args;
-                while (!terminate)
+                //String[] userInput = args;
+                StringBuilder inputStr = new StringBuilder();
+                foreach (String arg in args)
+                    inputStr.Append(arg + ' ');
+                while (true)
+                {
+                    Boolean result = machine.Run(inputStr);
+                    if(!result)
+                        break;
+                    System.Console.WriteLine("Waiting for next command, or --quit for exit, see --help");
+                    String input = System.Console.ReadLine();
+                    if (input == null)
+                        throw new ApplicationException("User input is null");
+                    inputStr.Clear();
+                    inputStr.Append(input);
+                }
+                
+                /*while (!terminate)
                 {
                     CommandInfo info = Parser.Parse(userInput);
                     Boolean result = Validator.Validate(info, serverState >= State.Initialized);
@@ -82,7 +104,7 @@ namespace MossbauerLab.TinyTcpServer.Console
                     if(input == null)
                         throw new ApplicationException("User input is null");
                     userInput = input.Split(' ');
-                }
+                }*/
             }
             catch (Exception e)
             {

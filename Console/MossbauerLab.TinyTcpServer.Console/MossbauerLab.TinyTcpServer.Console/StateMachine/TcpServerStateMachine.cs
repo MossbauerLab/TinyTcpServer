@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using log4net;
+using MossbauerLab.TinyTcpServer.Console.Builders;
 using MossbauerLab.TinyTcpServer.Console.cli.Parser;
 using MossbauerLab.TinyTcpServer.Console.Cli.Data;
 using MossbauerLab.TinyTcpServer.Console.Cli.Options;
@@ -28,11 +30,12 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 
     public class TcpServerStateMachine : MealyMachine <MachineState, StringBuilder, TcpServerMachineTransition>
     {
-        public TcpServerStateMachine(ITcpServer server)
+        public TcpServerStateMachine(ITcpServer server, ILog logger)
         {
-            if(server == null)
-                throw new ArgumentNullException("server");
+            //if(server == null)
+                //throw new ArgumentNullException("server");
             _server = server;
+            _logger = logger;
         }
 
         public void DefaultInit()
@@ -71,16 +74,19 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
             if (transition.StopMachine)
             {
                 // quit
+                System.Console.WriteLine("Exiting from tcp server console");
                 return false;
             }
             if (!transition.IsValid)
             {
                 // not valid commands, notify user ...
+                System.Console.WriteLine("Invalid command or argumemnts, see --help");
                 return true;
             }
             if (transition.StatesSequence == null)
             {
                 // display help
+                System.Console.WriteLine("This is help");
             }
             else
             {
@@ -98,13 +104,21 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 
         private Boolean ExecuteStartState(ref ITcpServer server, Object[] args)
         {
+            const String serverStartFormat = "=================> Server was started on {0} : {1}";
             Boolean result;
-            if (args.Length == 2)
+            if (args.Length >= 2)
             {
                 String ipAddress = args[0] as String;
                 UInt16 port = (UInt16) args[1];
+                String settingsFile = args[2] as String;
+                String scriptFile = args[3] as String;
+                TcpServerConfig config = settingsFile != null ? TcpServerConfigBuilder.Build(settingsFile) : null;
+                if(server == null || scriptFile != null)
+                    server = new FlexibleTcpServer(scriptFile, ipAddress, port, _logger, false, config);
                 result = server.Start(ipAddress, port);
                 _currentState = result ? MachineState.Started : _currentState;
+                System.Console.WriteLine(serverStartFormat, ipAddress, port);
+                System.Console.WriteLine("=================> Server was started");
                 return result;
             }
             result = server.Start();
@@ -114,8 +128,11 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
 
         private Boolean ExecuteStopState(ref ITcpServer server, Object[] args)
         {
+            if (server == null)
+                return false;
             server.Stop(true);
             _currentState = MachineState.Stopped;
+            System.Console.WriteLine("=================> Server was stoped");
             return true;
         }
 
@@ -167,6 +184,7 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
             return new TcpServerMachineTransition(false, false, null);
         }
 
+        private ILog _logger;
         private ITcpServer _server;
         private MachineState _currentState = MachineState.Initial;
         private Func<MachineState, StringBuilder, TcpServerMachineTransition> _transitionFunc;
