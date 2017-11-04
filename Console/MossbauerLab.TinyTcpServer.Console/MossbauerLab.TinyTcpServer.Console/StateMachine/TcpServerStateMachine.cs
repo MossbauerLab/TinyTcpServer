@@ -6,6 +6,7 @@ using log4net;
 using MossbauerLab.TinyTcpServer.Console.Builders;
 using MossbauerLab.TinyTcpServer.Console.cli.Parser;
 using MossbauerLab.TinyTcpServer.Console.Cli.Data;
+using MossbauerLab.TinyTcpServer.Console.Cli.Help;
 using MossbauerLab.TinyTcpServer.Console.Cli.Options;
 using MossbauerLab.TinyTcpServer.Console.Cli.Validator;
 using MossbauerLab.TinyTcpServer.Console.StateMachine.States;
@@ -32,8 +33,6 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
     {
         public TcpServerStateMachine(ITcpServer server, ILog logger)
         {
-            //if(server == null)
-                //throw new ArgumentNullException("server");
             _server = server;
             _logger = logger;
         }
@@ -86,7 +85,7 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
             if (transition.StatesSequence == null)
             {
                 // display help
-                System.Console.WriteLine("This is help");
+                System.Console.WriteLine(TcpServerHelp.HelpMessage);
             }
             else
             {
@@ -106,7 +105,7 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
         {
             const String serverStartFormat = "=================> Server was started on {0} : {1}";
             Boolean result;
-            if (args.Length >= 2)
+            if (args.Length >= 2 && (args[0] != null && args[1] != null))
             {
                 String ipAddress = args[0] as String;
                 UInt16 port = Convert.ToUInt16(args[1]);
@@ -131,7 +130,10 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
         private Boolean ExecuteStopState(ref ITcpServer server, Object[] args)
         {
             if (server == null)
+            {
+                System.Console.WriteLine("Server instance is null");
                 return false;
+            }
             server.Stop(true);
             _currentState = MachineState.Stopped;
             System.Console.WriteLine("=================> Server was stoped");
@@ -142,12 +144,10 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
         {
             try
             {
-                System.Console.WriteLine("input is : " + input);
                 CommandInfo info = Parser.Parse(input.ToString().Split(' '));
                 Boolean result = Validator.Validate(info, _server != null);
                 if (!result)
                 {
-                    System.Console.WriteLine("Parsing is invalid");
                     return new TcpServerMachineTransition(false, false, null);
                 }
                 if (info.Command == CommandType.Quit)
@@ -193,12 +193,11 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
             }
             catch (ApplicationException)
             {
-                System.Console.WriteLine("THROWS!!!");
                 return new TcpServerMachineTransition(false, false, null);
             }
         }
 
-        private ILog _logger;
+        private readonly ILog _logger;
         private ITcpServer _server;
         private MachineState _currentState = MachineState.Initial;
         private Func<MachineState, StringBuilder, TcpServerMachineTransition> _transitionFunc;
