@@ -39,7 +39,6 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             if (!results.Errors.HasErrors)
             {
                 // executing ...
-                Console.WriteLine("There is no errors!");
                 Type mainType = results.CompiledAssembly.GetType(ScriptEntryType);
                 MethodInfo methodInfo = mainType.GetMethod("Init");
                 if(methodInfo == null)

@@ -1,0 +1,21 @@
+# This is a example of settings file all settings are represented as pair key=value, lines started from # are commentary (ignores)
+# number of clients processing the 'same time'
+ParallelTask = 256
+# buffer on receive for every client (in bytes)
+ClientBufferSize = 65535
+# chunk is a auant of size for read and write operations
+ChunkSize = 4096
+# number of times in a row that calls BeginAccept (in a sepatarate from IO processing thread)
+ClientConnectAttempts = 4
+# time while client stays inactive, after this time is off (in seconds) client will be disconneced by server
+ClientInactivityTime = 120
+# timeout for BeginAccept in milliseconds
+ClientConnectTimeout = 1000
+# number of attempts in a row to get data from client
+ClientReadAttempts = 8
+# timeout in milliseconds on every read attemp 
+ReadTimeout = 200
+# timeout in milliseconds for server to shutdown, close all opened resources
+ServerCloseTimeout = 2000
+# timeout in milliseconds to complete write operation
+WriteTimeout = 1000 
