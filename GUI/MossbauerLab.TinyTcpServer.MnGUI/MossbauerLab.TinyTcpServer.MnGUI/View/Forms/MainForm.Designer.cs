@@ -40,12 +40,16 @@
             this._serverParametersBox = new System.Windows.Forms.GroupBox();
             this._serverParametersView = new System.Windows.Forms.ListView();
             this._applyButton = new System.Windows.Forms.Button();
-            this._serverTypeComboBox = new System.Windows.Forms.ComboBox();
             this._portTextBox = new System.Windows.Forms.TextBox();
             this._ipAddressComboBox = new System.Windows.Forms.ComboBox();
-            this._serverTypeLabel = new System.Windows.Forms.Label();
+            this._serverSettingsLabel = new System.Windows.Forms.Label();
             this._portLabel = new System.Windows.Forms.Label();
             this._ipAddressLabel = new System.Windows.Forms.Label();
+            this._serverSettingsBox = new System.Windows.Forms.TextBox();
+            this._serverSettingsButton = new System.Windows.Forms.Button();
+            this._serverScriptLabel = new System.Windows.Forms.Label();
+            this._serverScriptBox = new System.Windows.Forms.TextBox();
+            this._serverScriptButton = new System.Windows.Forms.Button();
             this._logsGroupBox.SuspendLayout();
             this._serverSettingsGroup.SuspendLayout();
             this._serverParametersBox.SuspendLayout();
@@ -107,14 +111,18 @@
             // 
             // _serverSettingsGroup
             // 
+            this._serverSettingsGroup.Controls.Add(this._serverScriptButton);
+            this._serverSettingsGroup.Controls.Add(this._serverScriptBox);
+            this._serverSettingsGroup.Controls.Add(this._serverScriptLabel);
+            this._serverSettingsGroup.Controls.Add(this._serverSettingsButton);
+            this._serverSettingsGroup.Controls.Add(this._serverSettingsBox);
             this._serverSettingsGroup.Controls.Add(this._logLevelComboBox);
             this._serverSettingsGroup.Controls.Add(this._logLevelLabel);
             this._serverSettingsGroup.Controls.Add(this._serverParametersBox);
             this._serverSettingsGroup.Controls.Add(this._applyButton);
-            this._serverSettingsGroup.Controls.Add(this._serverTypeComboBox);
             this._serverSettingsGroup.Controls.Add(this._portTextBox);
             this._serverSettingsGroup.Controls.Add(this._ipAddressComboBox);
-            this._serverSettingsGroup.Controls.Add(this._serverTypeLabel);
+            this._serverSettingsGroup.Controls.Add(this._serverSettingsLabel);
             this._serverSettingsGroup.Controls.Add(this._portLabel);
             this._serverSettingsGroup.Controls.Add(this._ipAddressLabel);
             this._serverSettingsGroup.Location = new System.Drawing.Point(12, 12);
@@ -169,14 +177,6 @@
             this._applyButton.Text = "Apply";
             this._applyButton.UseVisualStyleBackColor = true;
             // 
-            // _serverTypeComboBox
-            // 
-            this._serverTypeComboBox.FormattingEnabled = true;
-            this._serverTypeComboBox.Location = new System.Drawing.Point(97, 94);
-            this._serverTypeComboBox.Name = "_serverTypeComboBox";
-            this._serverTypeComboBox.Size = new System.Drawing.Size(121, 21);
-            this._serverTypeComboBox.TabIndex = 5;
-            // 
             // _portTextBox
             // 
             this._portTextBox.Location = new System.Drawing.Point(97, 58);
@@ -192,14 +192,14 @@
             this._ipAddressComboBox.Size = new System.Drawing.Size(121, 21);
             this._ipAddressComboBox.TabIndex = 3;
             // 
-            // _serverTypeLabel
+            // _serverSettingsLabel
             // 
-            this._serverTypeLabel.AutoSize = true;
-            this._serverTypeLabel.Location = new System.Drawing.Point(16, 97);
-            this._serverTypeLabel.Name = "_serverTypeLabel";
-            this._serverTypeLabel.Size = new System.Drawing.Size(68, 13);
-            this._serverTypeLabel.TabIndex = 2;
-            this._serverTypeLabel.Text = "Server Type:";
+            this._serverSettingsLabel.AutoSize = true;
+            this._serverSettingsLabel.Location = new System.Drawing.Point(16, 97);
+            this._serverSettingsLabel.Name = "_serverSettingsLabel";
+            this._serverSettingsLabel.Size = new System.Drawing.Size(82, 13);
+            this._serverSettingsLabel.TabIndex = 2;
+            this._serverSettingsLabel.Text = "Server Settings:";
             // 
             // _portLabel
             // 
@@ -218,6 +218,47 @@
             this._ipAddressLabel.Size = new System.Drawing.Size(61, 13);
             this._ipAddressLabel.TabIndex = 0;
             this._ipAddressLabel.Text = "IP Address:";
+            // 
+            // _serverSettingsBox
+            // 
+            this._serverSettingsBox.Location = new System.Drawing.Point(97, 94);
+            this._serverSettingsBox.Name = "_serverSettingsBox";
+            this._serverSettingsBox.Size = new System.Drawing.Size(97, 20);
+            this._serverSettingsBox.TabIndex = 10;
+            // 
+            // _serverSettingsButton
+            // 
+            this._serverSettingsButton.Location = new System.Drawing.Point(194, 92);
+            this._serverSettingsButton.Name = "_serverSettingsButton";
+            this._serverSettingsButton.Size = new System.Drawing.Size(24, 22);
+            this._serverSettingsButton.TabIndex = 11;
+            this._serverSettingsButton.Text = "...";
+            this._serverSettingsButton.UseVisualStyleBackColor = true;
+            // 
+            // _serverScriptLabel
+            // 
+            this._serverScriptLabel.AutoSize = true;
+            this._serverScriptLabel.Location = new System.Drawing.Point(16, 133);
+            this._serverScriptLabel.Name = "_serverScriptLabel";
+            this._serverScriptLabel.Size = new System.Drawing.Size(71, 13);
+            this._serverScriptLabel.TabIndex = 12;
+            this._serverScriptLabel.Text = "Server Script:";
+            // 
+            // _serverScriptBox
+            // 
+            this._serverScriptBox.Location = new System.Drawing.Point(96, 130);
+            this._serverScriptBox.Name = "_serverScriptBox";
+            this._serverScriptBox.Size = new System.Drawing.Size(98, 20);
+            this._serverScriptBox.TabIndex = 13;
+            // 
+            // _serverScriptButton
+            // 
+            this._serverScriptButton.Location = new System.Drawing.Point(194, 128);
+            this._serverScriptButton.Name = "_serverScriptButton";
+            this._serverScriptButton.Size = new System.Drawing.Size(24, 22);
+            this._serverScriptButton.TabIndex = 14;
+            this._serverScriptButton.Text = "...";
+            this._serverScriptButton.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -248,18 +289,22 @@
         private System.Windows.Forms.GroupBox _logsGroupBox;
         private System.Windows.Forms.ListBox _clientsListBox;
         private System.Windows.Forms.GroupBox _serverSettingsGroup;
-        private System.Windows.Forms.Label _serverTypeLabel;
+        private System.Windows.Forms.Label _serverSettingsLabel;
         private System.Windows.Forms.Label _portLabel;
         private System.Windows.Forms.Label _ipAddressLabel;
         private System.Windows.Forms.ComboBox _ipAddressComboBox;
         private System.Windows.Forms.TextBox _portTextBox;
-        private System.Windows.Forms.ComboBox _serverTypeComboBox;
         private System.Windows.Forms.Button _applyButton;
         private System.Windows.Forms.RichTextBox _logsTextBox;
         private System.Windows.Forms.GroupBox _serverParametersBox;
         private System.Windows.Forms.ListView _serverParametersView;
         private System.Windows.Forms.ComboBox _logLevelComboBox;
         private System.Windows.Forms.Label _logLevelLabel;
+        private System.Windows.Forms.Button _serverScriptButton;
+        private System.Windows.Forms.TextBox _serverScriptBox;
+        private System.Windows.Forms.Label _serverScriptLabel;
+        private System.Windows.Forms.Button _serverSettingsButton;
+        private System.Windows.Forms.TextBox _serverSettingsBox;
     }
 }
 
