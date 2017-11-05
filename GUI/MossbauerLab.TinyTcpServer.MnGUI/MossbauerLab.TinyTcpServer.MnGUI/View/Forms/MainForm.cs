@@ -14,6 +14,7 @@ using MossbauerLab.TinyTcpServer.Core.Server;
 using MossbauerLab.TinyTcpServer.MnGUI.Factories;
 using MossbauerLab.TinyTcpServer.MnGUI.LogUtils;
 using MossbauerLab.TinyTcpServer.MnGUI.View.Helpers;
+using MossbauerLab.TinyTcpServer.MnGUI.View.Utils;
 
 namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 {
@@ -27,6 +28,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _stopButton.Click += (sender, args) => Stop();
             _restartButton.Click += (sender, args) => Restart();
             _serverScriptButton.Click += OnChooseScriptFileButtonClick;
+            _serverSettingsButton.Click += OnChooseSettingsFileButtonClick;
             _logLevelComboBox.SelectedIndexChanged += (sender, args) => ApplyLogLevel();
         }
 
@@ -53,10 +55,6 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
                 _portTextBox.Text = DefaultTcpPort.ToString();
             }
 
-            // add server type
-            //foreach (KeyValuePair<ServerType, String> server in _servers)
-                //_serverTypeComboBox.Items.Add(server.Value);
-            //_serverTypeComboBox.SelectedIndex = 0;
 
             // init logger + fill log level
             XmlConfigurator.Configure();
@@ -71,6 +69,8 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             IList<String> configStrings = ServerConfigInfoHelper.GetConfigStrings(_serverConfig);
             foreach (String configString in configStrings)
                 _serverParametersView.Items.Add(configString);
+            // update controls state
+            UpdateControlsState();
         }
 
         private IDictionary<String, String> GetOptions(String[] lines)
@@ -123,23 +123,39 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             Start();
         }
 
-        public void OnChooseScriptFileButtonClick(Object sender, EventArgs args)
+        private void OnChooseScriptFileButtonClick(Object sender, EventArgs args)
         {
             OpenFileDialog openScriptFile = new OpenFileDialog();
-            openScriptFile.RestoreDirectory = true;
-            openScriptFile.Title = @"Choose C# script file";
-            openScriptFile.Filter = @" CSharp files (*.cs)|*.cs";
-            if (openScriptFile.ShowDialog() == DialogResult.OK)
+            String file = openScriptFile.Run(@" CSharp files (*.cs)|*.cs", Path.GetFullPath("."), @"Choose C# script file", 0);
+            if (file != String.Empty)
             {
-                _scriptFile = openScriptFile.SafeFileName;
+                _scriptFile = file;
                 _serverScriptBox.Text = Path.GetFileName(_scriptFile);
             }
         }
 
-        void UpdateControlsState()
+        private void OnChooseSettingsFileButtonClick(Object sender, EventArgs args)
+        {
+            OpenFileDialog openScriptFile = new OpenFileDialog();
+            String file = openScriptFile.Run(@" Text files (*.txt)|*.txt | Config files (*.conf) |*.conf | Config files (*.cfg) |*.cfg | Any file (*.*)|*.*", 
+                                             Path.GetFullPath("."), @"Choose Server settings file", 0);
+            if (file != String.Empty)
+            {
+                _settingsFile = file;
+                _serverSettingsBox.Text = Path.GetFileName(_settingsFile);
+            }
+        }
+
+        private void UpdateControlsState()
         {
             if (_server == null)
+            {
+                _startButton.Enabled = true;
+                _restartButton.Enabled = false;
+                _stopButton.Enabled = false;
                 return;
+            }
+            
             _startButton.Enabled = !_server.IsReady;
             _restartButton.Enabled = _server.IsReady;
             _stopButton.Enabled = _server.IsReady;
@@ -149,7 +165,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _portTextBox.Enabled = !_server.IsReady;
         }
 
-        void PopulateClients()
+        private void PopulateClients()
         {
             _clientsListBox.Items.Clear();
             IList<TcpClientContext> clients = _server.Clients;
@@ -164,13 +180,13 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             }
         }
 
-        void StateUpdater(Object state)
+        private void StateUpdater(Object state)
         {
             BeginInvoke((Action)(UpdateControlsState));
             BeginInvoke((Action) PopulateClients);
         }
 
-        void ApplyLogLevel()
+        private void ApplyLogLevel()
         {
             Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository();
             hierarchy.Threshold =_logLevels.First(item => item.Value.Equals(_logLevelComboBox.Items[_logLevelComboBox.SelectedIndex].ToString())).Key;
@@ -179,13 +195,8 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         private const String ConfigFile = @".\settings.txt";
         private const UInt16 DefaultTcpPort = 9999;
         private const String TotalClientsTemplate = "Total connected clients: {0}";
-        private const String ClientInfoTemplate = "Client {0}, ip: {1}";
+        private const String ClientInfoTemplate = "Client {0}, ip: {1}"; // todo: umv add sctipt and settings ....
 
-/*        private readonly IDictionary<ServerType, String> _servers = new Dictionary<ServerType, String>()
-        {
-            {ServerType.Echo, "Echo server"},
-            {ServerType.Time, "Time server"},
-        };*/
 
         private readonly IDictionary<Level, String> _logLevels = new Dictionary<Level, String>()
         {
@@ -198,11 +209,13 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             {Level.Warn, "Warn"}
         };
 
-        private String _scriptFile;
+        
         private ILog _logger;
-        private RichTextBoxAppender _richTextBoxAppender;
-        private readonly TcpServerConfig _serverConfig = new TcpServerConfig();
         private ITcpServer _server;
+        private String _scriptFile;
+        private String _settingsFile;
+        private readonly TcpServerConfig _serverConfig = new TcpServerConfig();
+        private RichTextBoxAppender _richTextBoxAppender;
         private readonly System.Threading.Timer[] _timers = new System.Threading.Timer[1];
     }
 }

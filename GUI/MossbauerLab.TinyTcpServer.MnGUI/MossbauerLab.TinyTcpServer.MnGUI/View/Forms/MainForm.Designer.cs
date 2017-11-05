@@ -35,6 +35,11 @@
             this._logsTextBox = new System.Windows.Forms.RichTextBox();
             this._clientsListBox = new System.Windows.Forms.ListBox();
             this._serverSettingsGroup = new System.Windows.Forms.GroupBox();
+            this._serverScriptButton = new System.Windows.Forms.Button();
+            this._serverScriptBox = new System.Windows.Forms.TextBox();
+            this._serverScriptLabel = new System.Windows.Forms.Label();
+            this._serverSettingsButton = new System.Windows.Forms.Button();
+            this._serverSettingsBox = new System.Windows.Forms.TextBox();
             this._logLevelComboBox = new System.Windows.Forms.ComboBox();
             this._logLevelLabel = new System.Windows.Forms.Label();
             this._serverParametersBox = new System.Windows.Forms.GroupBox();
@@ -45,11 +50,6 @@
             this._serverSettingsLabel = new System.Windows.Forms.Label();
             this._portLabel = new System.Windows.Forms.Label();
             this._ipAddressLabel = new System.Windows.Forms.Label();
-            this._serverSettingsBox = new System.Windows.Forms.TextBox();
-            this._serverSettingsButton = new System.Windows.Forms.Button();
-            this._serverScriptLabel = new System.Windows.Forms.Label();
-            this._serverScriptBox = new System.Windows.Forms.TextBox();
-            this._serverScriptButton = new System.Windows.Forms.Button();
             this._logsGroupBox.SuspendLayout();
             this._serverSettingsGroup.SuspendLayout();
             this._serverParametersBox.SuspendLayout();
@@ -131,6 +131,47 @@
             this._serverSettingsGroup.TabIndex = 5;
             this._serverSettingsGroup.TabStop = false;
             this._serverSettingsGroup.Text = "Server settings";
+            // 
+            // _serverScriptButton
+            // 
+            this._serverScriptButton.Location = new System.Drawing.Point(194, 130);
+            this._serverScriptButton.Name = "_serverScriptButton";
+            this._serverScriptButton.Size = new System.Drawing.Size(24, 20);
+            this._serverScriptButton.TabIndex = 14;
+            this._serverScriptButton.Text = "...";
+            this._serverScriptButton.UseVisualStyleBackColor = true;
+            // 
+            // _serverScriptBox
+            // 
+            this._serverScriptBox.Location = new System.Drawing.Point(96, 130);
+            this._serverScriptBox.Name = "_serverScriptBox";
+            this._serverScriptBox.Size = new System.Drawing.Size(98, 20);
+            this._serverScriptBox.TabIndex = 13;
+            // 
+            // _serverScriptLabel
+            // 
+            this._serverScriptLabel.AutoSize = true;
+            this._serverScriptLabel.Location = new System.Drawing.Point(16, 133);
+            this._serverScriptLabel.Name = "_serverScriptLabel";
+            this._serverScriptLabel.Size = new System.Drawing.Size(71, 13);
+            this._serverScriptLabel.TabIndex = 12;
+            this._serverScriptLabel.Text = "Server Script:";
+            // 
+            // _serverSettingsButton
+            // 
+            this._serverSettingsButton.Location = new System.Drawing.Point(194, 94);
+            this._serverSettingsButton.Name = "_serverSettingsButton";
+            this._serverSettingsButton.Size = new System.Drawing.Size(24, 20);
+            this._serverSettingsButton.TabIndex = 11;
+            this._serverSettingsButton.Text = "...";
+            this._serverSettingsButton.UseVisualStyleBackColor = true;
+            // 
+            // _serverSettingsBox
+            // 
+            this._serverSettingsBox.Location = new System.Drawing.Point(97, 94);
+            this._serverSettingsBox.Name = "_serverSettingsBox";
+            this._serverSettingsBox.Size = new System.Drawing.Size(97, 20);
+            this._serverSettingsBox.TabIndex = 10;
             // 
             // _logLevelComboBox
             // 
@@ -218,47 +259,6 @@
             this._ipAddressLabel.Size = new System.Drawing.Size(61, 13);
             this._ipAddressLabel.TabIndex = 0;
             this._ipAddressLabel.Text = "IP Address:";
-            // 
-            // _serverSettingsBox
-            // 
-            this._serverSettingsBox.Location = new System.Drawing.Point(97, 94);
-            this._serverSettingsBox.Name = "_serverSettingsBox";
-            this._serverSettingsBox.Size = new System.Drawing.Size(97, 20);
-            this._serverSettingsBox.TabIndex = 10;
-            // 
-            // _serverSettingsButton
-            // 
-            this._serverSettingsButton.Location = new System.Drawing.Point(194, 92);
-            this._serverSettingsButton.Name = "_serverSettingsButton";
-            this._serverSettingsButton.Size = new System.Drawing.Size(24, 22);
-            this._serverSettingsButton.TabIndex = 11;
-            this._serverSettingsButton.Text = "...";
-            this._serverSettingsButton.UseVisualStyleBackColor = true;
-            // 
-            // _serverScriptLabel
-            // 
-            this._serverScriptLabel.AutoSize = true;
-            this._serverScriptLabel.Location = new System.Drawing.Point(16, 133);
-            this._serverScriptLabel.Name = "_serverScriptLabel";
-            this._serverScriptLabel.Size = new System.Drawing.Size(71, 13);
-            this._serverScriptLabel.TabIndex = 12;
-            this._serverScriptLabel.Text = "Server Script:";
-            // 
-            // _serverScriptBox
-            // 
-            this._serverScriptBox.Location = new System.Drawing.Point(96, 130);
-            this._serverScriptBox.Name = "_serverScriptBox";
-            this._serverScriptBox.Size = new System.Drawing.Size(98, 20);
-            this._serverScriptBox.TabIndex = 13;
-            // 
-            // _serverScriptButton
-            // 
-            this._serverScriptButton.Location = new System.Drawing.Point(194, 128);
-            this._serverScriptButton.Name = "_serverScriptButton";
-            this._serverScriptButton.Size = new System.Drawing.Size(24, 22);
-            this._serverScriptButton.TabIndex = 14;
-            this._serverScriptButton.Text = "...";
-            this._serverScriptButton.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
