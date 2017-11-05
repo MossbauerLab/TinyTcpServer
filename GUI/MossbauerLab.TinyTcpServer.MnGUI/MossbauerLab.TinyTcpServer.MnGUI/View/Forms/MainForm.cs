@@ -93,7 +93,8 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             }
             else
             {
-                // todo umv: if server config changed => re-create server
+                if(_configChanged)
+                    _server = ServerFactory.Create(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port, _scriptFile, _logger, _serverConfig);
                 _server.Start(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port);
             }
 
@@ -141,6 +142,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             {
                 _configFile = file;
                 DisplayConfig();
+                _configChanged = true;
             }
         }
 
@@ -213,6 +215,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         private String _scriptFile;
         private String _configFile;
         private TcpServerConfig _serverConfig = new TcpServerConfig();
+        private Boolean _configChanged = false;
         private RichTextBoxAppender _richTextBoxAppender;
         private readonly System.Threading.Timer[] _timers = new System.Threading.Timer[1];
     }
