@@ -87,24 +87,26 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 
         private void Start()
         {
-            //ServerType serverType = ServerType.Scripting;
-/*            foreach (KeyValuePair<ServerType, String> server in _servers)
-            {
-                if (String.Equals(_serverTypeComboBox.Items[_serverTypeComboBox.SelectedIndex].ToString(), server.Value))
-                    serverType = server.Key;
-            }
+            UInt16 port = Convert.ToUInt16(_portTextBox.Text);
             if (_server == null)
-            { 
-                _server = ServerFactory.Create(serverType, _ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), 
-                                               UInt16.Parse(_portTextBox.Text), _logger, _serverConfig);
+            {
+                if (_ipAddressComboBox.SelectedIndex >= 0 && _portTextBox.Text != null && !String.IsNullOrEmpty(_scriptFile))
+                    _server = ServerFactory.Create(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port, _scriptFile, _logger, _serverConfig);
+                else
+                {
+                    MessageBox.Show(@"Can not start server, please select IP address, port and server script");
+                    return;
+                }
+                _server.Start();
             }
-            _server.Start();
+            else  _server.Start(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port);
+
             if (_timers[0] == null)
             {
                 System.Threading.Timer periodicalUpdater = new System.Threading.Timer(StateUpdater, null, 500, 500);
                 _timers[0] = periodicalUpdater;
             }
-            else _timers[0].Change(500, 500);*/
+            else _timers[0].Change(500, 500);
         }
 
         public void Stop()
