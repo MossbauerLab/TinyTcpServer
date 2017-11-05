@@ -27,6 +27,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _startButton.Click += (sender, args) => Start();
             _stopButton.Click += (sender, args) => Stop();
             _restartButton.Click += (sender, args) => Restart();
+            _serverScriptButton.Click += OnChooseScriptFileButtonClick;
             _logLevelComboBox.SelectedIndexChanged += (sender, args) => ApplyLogLevel();
         }
 
@@ -54,9 +55,9 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             }
 
             // add server type
-            foreach (KeyValuePair<ServerType, String> server in _servers)
-                _serverTypeComboBox.Items.Add(server.Value);
-            _serverTypeComboBox.SelectedIndex = 0;
+            //foreach (KeyValuePair<ServerType, String> server in _servers)
+                //_serverTypeComboBox.Items.Add(server.Value);
+            //_serverTypeComboBox.SelectedIndex = 0;
 
             // init logger + fill log level
             XmlConfigurator.Configure();
@@ -87,14 +88,8 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 
         private void Start()
         {
-            // getting server type
-            if (_serverTypeComboBox.SelectedIndex < 0)
-            {
-                // log
-                return;
-            }
             ServerType serverType = ServerType.Scripting;
-            foreach (KeyValuePair<ServerType, String> server in _servers)
+/*            foreach (KeyValuePair<ServerType, String> server in _servers)
             {
                 if (String.Equals(_serverTypeComboBox.Items[_serverTypeComboBox.SelectedIndex].ToString(), server.Value))
                     serverType = server.Key;
@@ -110,7 +105,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
                 System.Threading.Timer periodicalUpdater = new System.Threading.Timer(StateUpdater, null, 500, 500);
                 _timers[0] = periodicalUpdater;
             }
-            else _timers[0].Change(500, 500);
+            else _timers[0].Change(500, 500);*/
         }
 
         public void Stop()
@@ -127,6 +122,19 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         {
             Stop();
             Start();
+        }
+
+        public void OnChooseScriptFileButtonClick(Object sender, EventArgs args)
+        {
+            OpenFileDialog openScriptFile = new OpenFileDialog();
+            openScriptFile.RestoreDirectory = true;
+            openScriptFile.Title = @"Choose C# script file";
+            openScriptFile.Filter = @" CSharp files (*.cs)|*.cs";
+            if (openScriptFile.ShowDialog() == DialogResult.OK)
+            {
+                _scriptFile = openScriptFile.SafeFileName;
+                _serverScriptBox.Text = Path.GetFileName(_scriptFile);
+            }
         }
 
         void UpdateControlsState()
@@ -174,18 +182,24 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         private const String TotalClientsTemplate = "Total connected clients: {0}";
         private const String ClientInfoTemplate = "Client {0}, ip: {1}";
 
-        private readonly IDictionary<ServerType, String> _servers = new Dictionary<ServerType, String>()
+/*        private readonly IDictionary<ServerType, String> _servers = new Dictionary<ServerType, String>()
         {
             {ServerType.Echo, "Echo server"},
             {ServerType.Time, "Time server"},
-        };
+        };*/
 
         private readonly IDictionary<Level, String> _logLevels = new Dictionary<Level, String>()
         {
-            {Level.Alert, "Alert"}, {Level.Critical, "Critical"}, {Level.Debug, "Debug"},
-            {Level.Emergency, "Emergency"}, {Level.Error, "Error"}, {Level.Info, "Info"}, {Level.Warn, "Warn"}
+            {Level.Alert, "Alert"}, 
+            {Level.Critical, "Critical"}, 
+            {Level.Debug, "Debug"},
+            {Level.Emergency, "Emergency"}, 
+            {Level.Error, "Error"}, 
+            {Level.Info, "Info"}, 
+            {Level.Warn, "Warn"}
         };
 
+        private String _scriptFile;
         private ILog _logger;
         private RichTextBoxAppender _richTextBoxAppender;
         private readonly TcpServerConfig _serverConfig = new TcpServerConfig();
