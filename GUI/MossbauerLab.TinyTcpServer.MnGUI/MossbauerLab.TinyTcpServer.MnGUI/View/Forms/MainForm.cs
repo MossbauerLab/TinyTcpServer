@@ -12,8 +12,8 @@ using log4net.Repository.Hierarchy;
 using MossbauerLab.TinyTcpServer.Core.Client;
 using MossbauerLab.TinyTcpServer.Core.Server;
 using MossbauerLab.TinyTcpServer.MnGUI.Factories;
+using MossbauerLab.TinyTcpServer.MnGUI.Helpers;
 using MossbauerLab.TinyTcpServer.MnGUI.LogUtils;
-using MossbauerLab.TinyTcpServer.MnGUI.View.Helpers;
 using MossbauerLab.TinyTcpServer.MnGUI.View.Utils;
 
 namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
@@ -28,7 +28,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _stopButton.Click += (sender, args) => Stop();
             _restartButton.Click += (sender, args) => Restart();
             _serverScriptButton.Click += OnChooseScriptFileButtonClick;
-            _serverSettingsButton.Click += OnChooseSettingsFileButtonClick;
+            _serverConfigButton.Click += OnChooseConfigFileButtonClick;
             _logLevelComboBox.SelectedIndexChanged += (sender, args) => ApplyLogLevel();
         }
 
@@ -45,16 +45,13 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             // load last IP address and TCP Port settings
             if (File.Exists(ConfigFile))
             {
-                String[] filelines = File.ReadAllLines(ConfigFile);
-                ApplySettings(GetOptions(filelines));
-            }
-            else
-            {
-                if (_ipAddressComboBox.Items.Count > 0)
-                    _ipAddressComboBox.SelectedIndex = 0;
-                _portTextBox.Text = DefaultTcpPort.ToString();
+                _configFile = ConfigFile;
+                DisplayConfig();
             }
 
+            if (_ipAddressComboBox.Items.Count > 0)
+                _ipAddressComboBox.SelectedIndex = 0;
+                _portTextBox.Text = DefaultTcpPort.ToString();
 
             // init logger + fill log level
             XmlConfigurator.Configure();
@@ -65,31 +62,26 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
                 _logLevelComboBox.Items.Add(level.Value);
             _logLevelComboBox.SelectedIndex = 5;
 
-            // fill server config
-            IList<String> configStrings = ServerConfigInfoHelper.GetConfigStrings(_serverConfig);
-            foreach (String configString in configStrings)
-                _serverParametersView.Items.Add(configString);
-            // update controls state
             UpdateControlsState();
         }
 
-        private IDictionary<String, String> GetOptions(String[] lines)
+        private void DisplayConfig()
         {
-            IDictionary<String, String> options = new Dictionary<String, String>();
-            // todo: parse options ....
-            return options;
+            String[] lines = File.ReadAllLines(_configFile).Where(line => !line.Trim().StartsWith("#")).ToArray();
+            _serverParametersView.Items.Clear();
+            foreach (String line in lines)
+                _serverParametersView.Items.Add(line);
+            _serverConfigBox.Text = Path.GetFileName(_configFile);
         }
 
-        private void ApplySettings(IDictionary<String, String> options)
-        {
-
-        }
 
         private void Start()
         {
             UInt16 port = Convert.ToUInt16(_portTextBox.Text);
             if (_server == null)
             {
+                if (!String.IsNullOrEmpty(_configFile))
+                    _serverConfig = TcpServerConfigBuilder.Build(_configFile);
                 if (_ipAddressComboBox.SelectedIndex >= 0 && _portTextBox.Text != null && !String.IsNullOrEmpty(_scriptFile))
                     _server = ServerFactory.Create(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port, _scriptFile, _logger, _serverConfig);
                 else
@@ -99,7 +91,11 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
                 }
                 _server.Start();
             }
-            else  _server.Start(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port);
+            else
+            {
+                // todo umv: if server config changed => re-create server
+                _server.Start(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port);
+            }
 
             if (_timers[0] == null)
             {
@@ -109,7 +105,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             else _timers[0].Change(500, 500);
         }
 
-        public void Stop()
+        private void Stop()
         {
             _server.Stop(false);
             if (_timers[0] != null)
@@ -119,7 +115,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             UpdateControlsState();
         }
 
-        public void Restart()
+        private void Restart()
         {
             Stop();
             Start();
@@ -136,15 +132,15 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             }
         }
 
-        private void OnChooseSettingsFileButtonClick(Object sender, EventArgs args)
+        private void OnChooseConfigFileButtonClick(Object sender, EventArgs args)
         {
             OpenFileDialog openScriptFile = new OpenFileDialog();
-            String file = openScriptFile.Run(@" Text files (*.txt)|*.txt | Config files (*.conf) |*.conf | Config files (*.cfg) |*.cfg | Any file (*.*)|*.*", 
+            String file = openScriptFile.Run(@" Text files (*.txt)|*.txt|Config files (*.conf)|*.conf|Config files (*.cfg)|*.cfg|Any file (*.*)|*.*", 
                                              Path.GetFullPath("."), @"Choose Server settings file", 0);
             if (file != String.Empty)
             {
-                _settingsFile = file;
-                _serverSettingsBox.Text = Path.GetFileName(_settingsFile);
+                _configFile = file;
+                DisplayConfig();
             }
         }
 
@@ -215,8 +211,8 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         private ILog _logger;
         private ITcpServer _server;
         private String _scriptFile;
-        private String _settingsFile;
-        private readonly TcpServerConfig _serverConfig = new TcpServerConfig();
+        private String _configFile;
+        private TcpServerConfig _serverConfig = new TcpServerConfig();
         private RichTextBoxAppender _richTextBoxAppender;
         private readonly System.Threading.Timer[] _timers = new System.Threading.Timer[1];
     }

@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\TcpServerConfigBuilder.cs" />
     <Compile Include="LogUtils\RichTextBoxAppender.cs" />
     <Compile Include="Factories\ServerFactory.cs" />
     <Compile Include="View\Helpers\ServerConfigInfoHelper.cs" />

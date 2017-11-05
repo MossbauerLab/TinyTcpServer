@@ -38,8 +38,8 @@
             this._serverScriptButton = new System.Windows.Forms.Button();
             this._serverScriptBox = new System.Windows.Forms.TextBox();
             this._serverScriptLabel = new System.Windows.Forms.Label();
-            this._serverSettingsButton = new System.Windows.Forms.Button();
-            this._serverSettingsBox = new System.Windows.Forms.TextBox();
+            this._serverConfigButton = new System.Windows.Forms.Button();
+            this._serverConfigBox = new System.Windows.Forms.TextBox();
             this._logLevelComboBox = new System.Windows.Forms.ComboBox();
             this._logLevelLabel = new System.Windows.Forms.Label();
             this._serverParametersBox = new System.Windows.Forms.GroupBox();
@@ -114,8 +114,8 @@
             this._serverSettingsGroup.Controls.Add(this._serverScriptButton);
             this._serverSettingsGroup.Controls.Add(this._serverScriptBox);
             this._serverSettingsGroup.Controls.Add(this._serverScriptLabel);
-            this._serverSettingsGroup.Controls.Add(this._serverSettingsButton);
-            this._serverSettingsGroup.Controls.Add(this._serverSettingsBox);
+            this._serverSettingsGroup.Controls.Add(this._serverConfigButton);
+            this._serverSettingsGroup.Controls.Add(this._serverConfigBox);
             this._serverSettingsGroup.Controls.Add(this._logLevelComboBox);
             this._serverSettingsGroup.Controls.Add(this._logLevelLabel);
             this._serverSettingsGroup.Controls.Add(this._serverParametersBox);
@@ -157,21 +157,21 @@
             this._serverScriptLabel.TabIndex = 12;
             this._serverScriptLabel.Text = "Server Script:";
             // 
-            // _serverSettingsButton
+            // _serverConfigButton
             // 
-            this._serverSettingsButton.Location = new System.Drawing.Point(194, 94);
-            this._serverSettingsButton.Name = "_serverSettingsButton";
-            this._serverSettingsButton.Size = new System.Drawing.Size(24, 20);
-            this._serverSettingsButton.TabIndex = 11;
-            this._serverSettingsButton.Text = "...";
-            this._serverSettingsButton.UseVisualStyleBackColor = true;
+            this._serverConfigButton.Location = new System.Drawing.Point(194, 94);
+            this._serverConfigButton.Name = "_serverConfigButton";
+            this._serverConfigButton.Size = new System.Drawing.Size(24, 20);
+            this._serverConfigButton.TabIndex = 11;
+            this._serverConfigButton.Text = "...";
+            this._serverConfigButton.UseVisualStyleBackColor = true;
             // 
-            // _serverSettingsBox
+            // _serverConfigBox
             // 
-            this._serverSettingsBox.Location = new System.Drawing.Point(97, 94);
-            this._serverSettingsBox.Name = "_serverSettingsBox";
-            this._serverSettingsBox.Size = new System.Drawing.Size(97, 20);
-            this._serverSettingsBox.TabIndex = 10;
+            this._serverConfigBox.Location = new System.Drawing.Point(97, 94);
+            this._serverConfigBox.Name = "_serverConfigBox";
+            this._serverConfigBox.Size = new System.Drawing.Size(97, 20);
+            this._serverConfigBox.TabIndex = 10;
             // 
             // _logLevelComboBox
             // 
@@ -303,8 +303,8 @@
         private System.Windows.Forms.Button _serverScriptButton;
         private System.Windows.Forms.TextBox _serverScriptBox;
         private System.Windows.Forms.Label _serverScriptLabel;
-        private System.Windows.Forms.Button _serverSettingsButton;
-        private System.Windows.Forms.TextBox _serverSettingsBox;
+        private System.Windows.Forms.Button _serverConfigButton;
+        private System.Windows.Forms.TextBox _serverConfigBox;
     }
 }
 
