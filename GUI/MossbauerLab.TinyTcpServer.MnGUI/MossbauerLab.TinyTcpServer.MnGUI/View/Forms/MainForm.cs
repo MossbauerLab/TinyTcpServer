@@ -11,7 +11,6 @@ using log4net.Core;
 using log4net.Repository.Hierarchy;
 using MossbauerLab.TinyTcpServer.Core.Client;
 using MossbauerLab.TinyTcpServer.Core.Server;
-using MossbauerLab.TinyTcpServer.MnGUI.Data;
 using MossbauerLab.TinyTcpServer.MnGUI.Factories;
 using MossbauerLab.TinyTcpServer.MnGUI.LogUtils;
 using MossbauerLab.TinyTcpServer.MnGUI.View.Helpers;
@@ -88,7 +87,7 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
 
         private void Start()
         {
-            ServerType serverType = ServerType.Scripting;
+            //ServerType serverType = ServerType.Scripting;
 /*            foreach (KeyValuePair<ServerType, String> server in _servers)
             {
                 if (String.Equals(_serverTypeComboBox.Items[_serverTypeComboBox.SelectedIndex].ToString(), server.Value))
