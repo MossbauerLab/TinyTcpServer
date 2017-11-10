@@ -27,6 +27,82 @@ https://www.nuget.org/packages/MossbauerLab.TinyTcpServer.Core/
 
 # 4. FULL EXAMPLE OF HOW TO USE
 
-Contributors
-EvilLord666 aka Ushakov Michael
-KatanaZZZ aka Anonymous
+private const String LocalIpAddress = "127.0.0.1";
+private const UInt16 ServerPort = 8044;
+private const String Script = @"..\..\TestScripts\SimpleScript.cs";
+        
+private ITcpServer _server;
+
+public void Init()
+{
+    _server = new FlexibleTcpServer(Script, LocalIpAddress, ServerPort);
+}
+
+That is all ! all logics is inside you script
+There are requirement to presence of initial class and entry method
+
+ public class ServerScript
+ {
+     public void Init(ref ITcpServer server)
+     {
+         if(server == null)
+             throw new NullReferenceException("server");
+         _server = server;
+         _connectHandlerId = Guid.NewGuid();
+         _dataHandlerId = Guid.NewGuid();
+         //Console.WriteLine("Init....");
+         _server.AddConnectionHandler(_connectHandlerId, OnClientConnection);
+         _server.AddHandler(new TcpClientHandlerInfo(_dataHandlerId), OnClientExchange);
+     }
+     // ...
+ }
+ 
+ // in this method we set up handlers
+ Handlers on Connect and Exchange looks like:
+ public Byte[] OnClientExchange(Byte[] receivedData, TcpClientHandlerInfo info)
+ {
+     lock (receivedData)
+     {
+         Byte[] outputData = new Byte[receivedData.Length];
+         Array.Copy(receivedData, outputData, receivedData.Length);
+         return outputData;
+     }
+ }
+        
+ public void OnClientConnection(TcpClientContext context, Boolean connect)  // connect true if client connected and false if disconnected
+ {
+            
+ }
+ 
+ Full example present (in file SimpleScript inside MossbauerLab.TinyTcpServer.FunctionalTests
+ 
+ # 5 Expanded setting
+ There are additional settings for TcpServer -> see class TcpServerSettings.cs (MossbauerLab.TinyTcpServer.Core)
+ In Console project there is a class that could parse config ftle (key=value) with that settings class is TcpServerConfigBuilder
+ 
+ it handles file, examples of settings:
+     # This is a example of settings file all settings are represented as pair key=value, lines started from # are commentary (ignores)
+     # number of clients processing the 'same time'
+     ParallelTask = 256
+     # buffer on receive for every client (in bytes)
+     ClientBufferSize = 65535
+     # chunk is a auant of size for read and write operations
+     ChunkSize = 4096
+     # number of times in a row that calls BeginAccept (in a sepatarate from IO processing thread)
+     ClientConnectAttempts = 4
+     # time while client stays inactive, after this time is off (in seconds) client will be disconneced by server
+     ClientInactivityTime = 120
+     # timeout for BeginAccept in milliseconds
+     ClientConnectTimeout = 1000
+     # number of attempts in a row to get data from client
+     ClientReadAttempts = 8
+     # timeout in milliseconds on every read attemp 
+     ReadTimeout = 200
+     # timeout in milliseconds for server to shutdown, close all opened resources
+     ServerCloseTimeout = 2000
+     # timeout in milliseconds to complete write operation
+     WriteTimeout = 1000 
+
+ # 6 CONTRIBUTORS
+ EvilLord666 aka Ushakov Michael
+ KatanaZZZ aka Anonymous
