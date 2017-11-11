@@ -114,5 +114,5 @@ There are requirement to presence of initial class and entry method
      WriteTimeout = 1000 
 `
  # 6 CONTRIBUTORS
- EvilLord666 aka Ushakov Michael
- KatanaZZZ aka Anonymous
+     EvilLord666 aka Ushakov Michael
+     KatanaZZZ aka Anonymous
