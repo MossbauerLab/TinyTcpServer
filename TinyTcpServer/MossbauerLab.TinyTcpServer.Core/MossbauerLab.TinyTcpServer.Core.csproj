@@ -53,6 +53,7 @@
     <Compile Include="Server\ITcpServer.cs" />
     <Compile Include="Server\TcpServer.cs" />
     <Compile Include="Server\TcpServerConfig.cs" />
+    <Compile Include="Scripting\CompilerOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Filtering\" />
