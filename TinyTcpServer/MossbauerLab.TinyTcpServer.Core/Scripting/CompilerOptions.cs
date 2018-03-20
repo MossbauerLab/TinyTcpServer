@@ -20,6 +20,8 @@ namespace MossbauerLab.TinyTcpServer.Core.Scripting
             {
                 Assembly.GetAssembly(typeof(TcpServer)).Location
             });
+            Parameters.GenerateExecutable = false;
+            Parameters.GenerateInMemory = true;
 
             ScriptEntryType = DefaultScriptEntryType;
         }
