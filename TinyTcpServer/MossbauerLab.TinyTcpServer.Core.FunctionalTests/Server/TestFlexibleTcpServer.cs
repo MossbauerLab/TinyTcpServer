@@ -35,16 +35,7 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(1048576, 2, false)]
         public void TestScriptRun(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
-            _server = new FlexibleTcpServer(DefaultScript, LocalIpAddress, ServerPort);
-            Boolean result = _server.Start();
-            Assert.IsTrue(result, "Checking that result is true");
-            using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort))
-            {
-                client.Open();
-                ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
-                client.Close();
-            }
-            Assert.DoesNotThrow(() => _server.Stop(true), "Checking that server correctly stops");
+            TestScriptRunImpl(dataSize, repetition, isClientAsync, DefaultScript, LocalIpAddress, ServerPort, null);
         }
 
         [TestCase(16, 1, true)]
@@ -68,11 +59,16 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             compilerOptions.Parameters.GenerateExecutable = false;
             compilerOptions.Parameters.GenerateInMemory = true;
             compilerOptions.ScriptEntryType = "MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestScripts.CustomScript";
+            TestScriptRunImpl(dataSize, repetition, isClientAsync, CustomScript, LocalIpAddress, ServerPort, compilerOptions);
+        }
 
-            _server = new FlexibleTcpServer(CustomScript, LocalIpAddress, ServerPort, compilerOptions);
+        private void TestScriptRunImpl(Int32 dataSize, Int32 repetition, Boolean isClientAsync, 
+                                       String script, String ipAddress, UInt16 port, CompilerOptions options)
+        {
+            _server = new FlexibleTcpServer(script, ipAddress, port, options);
             Boolean result = _server.Start();
             Assert.IsTrue(result, "Checking that result is true");
-            using (TransportClient client = new TransportClient(isClientAsync, LocalIpAddress, ServerPort))
+            using (TransportClient client = new TransportClient(isClientAsync, ipAddress, port))
             {
                 client.Open();
                 ExchangeWithRandomDataAndCheck(client, dataSize, repetition);
