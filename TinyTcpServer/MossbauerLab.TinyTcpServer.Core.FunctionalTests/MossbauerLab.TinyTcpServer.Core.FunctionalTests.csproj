@@ -56,9 +56,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\TestFlexibleTcpServer.cs" />
     <Compile Include="Server\TestTcpServer.cs" />
+    <Compile Include="TestScripts\CustomScript.cs" />
     <Compile Include="TestUtils\EchoTcpClientHandler.cs" />
     <Compile Include="TestUtils\TimeDelay.cs" />
     <Compile Include="TestUtils\TransportClient.cs" />
+    <Compile Include="TestScripts\SimpleScript.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

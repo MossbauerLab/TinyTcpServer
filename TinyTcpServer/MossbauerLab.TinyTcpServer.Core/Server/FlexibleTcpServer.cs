@@ -23,7 +23,7 @@ namespace MossbauerLab.TinyTcpServer.Core.Server
             _scriptFile = scriptFile;
             if (compilerOptions == null)
                 _compilerOptions = new CompilerOptions();
-
+            else _compilerOptions = compilerOptions;
         }
 
         public override Boolean Start()
