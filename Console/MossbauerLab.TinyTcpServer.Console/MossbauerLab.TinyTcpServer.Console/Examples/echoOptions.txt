@@ -1,0 +1,4 @@
+CompilerOptions = v4.0
+# Assemblies
+Assemblies = System.Web, System.Windows.Forms
+ScriptEntryType = Experimental.EchoServerScript
