@@ -46,6 +46,8 @@ namespace MossbauerLab.TinyTcpServer.Console.cli.Parser
                 info.ScriptFile = GetValue(keyValue);
             else if (key.Equals(CommandsOptions.ServerSettingsKey))
                 info.SettingsFile = GetValue(keyValue);
+            else if (key.Equals(CommandsOptions.CompilerOptionsKey))
+                info.CompilerOptionsFile = GetValue(keyValue);
             else throw new ApplicationException("Invalid data, unexpected data key");
         }
 

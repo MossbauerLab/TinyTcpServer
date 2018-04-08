@@ -10,6 +10,7 @@ using MossbauerLab.TinyTcpServer.Console.Cli.Help;
 using MossbauerLab.TinyTcpServer.Console.Cli.Options;
 using MossbauerLab.TinyTcpServer.Console.Cli.Validator;
 using MossbauerLab.TinyTcpServer.Console.StateMachine.States;
+using MossbauerLab.TinyTcpServer.Core.Scripting;
 using MossbauerLab.TinyTcpServer.Core.Server;
 
 namespace MossbauerLab.TinyTcpServer.Console.StateMachine
@@ -111,9 +112,12 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
                 UInt16 port = Convert.ToUInt16(args[1]);
                 String settingsFile = args[2] as String;
                 String scriptFile = args[3] as String;
+                String compilerOptionFile = args[4] as String;
+                CompilerOptions options = compilerOptionFile != null ? CompilerOptionsBuilder.Build(compilerOptionFile)
+                                                                     : new CompilerOptions();
                 TcpServerConfig config = settingsFile != null ? TcpServerConfigBuilder.Build(settingsFile) : null;
                 if(server == null || scriptFile != null)
-                    server = new FlexibleTcpServer(scriptFile, ipAddress, port, _logger, false, config);
+                    server = new FlexibleTcpServer(scriptFile, ipAddress, port, options, _logger, false, config);
                 result = server.Start(ipAddress, port);
                 if (result)
                     System.Console.WriteLine(serverStartFormat, ipAddress, port);
@@ -166,7 +170,8 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
                         new List<Tuple<TcpServerState, Object[]>>()
                         {
                             new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Started),
-                                new Object[] {info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile})
+                                new Object[] {info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile,
+                                              info.CompilerOptionsFile})
                         });
                 }
                 if (info.Command == CommandType.Stop && state == MachineState.Started)
@@ -184,7 +189,8 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
                         {
                             new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Stopped), null),
                             new Tuple<TcpServerState, Object[]>(new TcpServerState(MachineState.Started),
-                                new Object[] {info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile})
+                                new Object[] {info.IpAddress, info.Port, info.SettingsFile, info.ScriptFile,
+                                              info.CompilerOptionsFile})
                         });
                 }
                 if (info.Command == CommandType.Help)
