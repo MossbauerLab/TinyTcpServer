@@ -51,6 +51,19 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
         [TestCase(8192, 32, false)]
         public void TestScriptRunCustomCompilerSettings(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
+            TestRunServerWithScriptImpl(dataSize, repetition, isClientAsync);
+        }
+
+        [TestCase(1024, 16, true)]
+        [TestCase(1024, 16, false)]
+        public void TestRunAndReInitialization(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
+        {
+            TestRunServerWithScriptImpl(dataSize, repetition, isClientAsync);
+            TestRunServerWithScriptImpl(dataSize, repetition, isClientAsync);
+        }
+
+        private void TestRunServerWithScriptImpl(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
+        {
             CompilerOptions compilerOptions = new CompilerOptions();
             compilerOptions.Provider = new CSharpCodeProvider(new Dictionary<String, String>()
             {
