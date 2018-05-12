@@ -62,6 +62,27 @@ namespace MossbauerLab.TinyTcpServer.Core.FunctionalTests.Server
             TestRunServerWithScriptImpl(dataSize, repetition, isClientAsync);
         }
 
+        [Test]
+        public void TestRestart()
+        {
+            CompilerOptions compilerOptions = new CompilerOptions();
+            compilerOptions.Provider = new CSharpCodeProvider(new Dictionary<String, String>()
+            {
+                {"CompilerVersion", "v4.0"}
+            });
+            compilerOptions.Parameters.GenerateExecutable = false;
+            compilerOptions.Parameters.GenerateInMemory = true;
+            compilerOptions.ScriptEntryType = "MossbauerLab.TinyTcpServer.Core.FunctionalTests.TestScripts.CustomScript";
+            // CustomScript, LocalIpAddress, ServerPort, compilerOptions
+            _server = new FlexibleTcpServer(CustomScript, LocalIpAddress, ServerPort, compilerOptions);
+            Boolean result = _server.Start();
+            Assert.IsTrue(result, "Checking that result is true");
+            _server.Stop(true);
+            result =_server.Start();
+            Assert.IsTrue(result, "Checking that result is true");
+            _server.Stop(true);
+        }
+
         private void TestRunServerWithScriptImpl(Int32 dataSize, Int32 repetition, Boolean isClientAsync)
         {
             CompilerOptions compilerOptions = new CompilerOptions();
