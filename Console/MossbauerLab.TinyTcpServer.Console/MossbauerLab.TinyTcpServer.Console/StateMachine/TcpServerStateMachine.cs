@@ -116,8 +116,11 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
                 CompilerOptions options = compilerOptionFile != null ? CompilerOptionsBuilder.Build(compilerOptionFile)
                                                                      : new CompilerOptions();
                 TcpServerConfig config = settingsFile != null ? TcpServerConfigBuilder.Build(settingsFile) : null;
-                if(server == null || scriptFile != null)
+                if (server == null || scriptFile != null || compilerOptionFile != null)
+                {
+                    System.Console.WriteLine("re-creation....");
                     server = new FlexibleTcpServer(scriptFile, ipAddress, port, options, _logger, false, config);
+                }
                 result = server.Start(ipAddress, port);
                 if (result)
                     System.Console.WriteLine(serverStartFormat, ipAddress, port);
