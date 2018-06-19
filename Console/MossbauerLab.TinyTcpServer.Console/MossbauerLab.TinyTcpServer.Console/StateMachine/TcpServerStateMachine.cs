@@ -126,7 +126,7 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
                     _config = config;
                 if (server == null || scriptFile != null || compilerOptionFile != null)
                 {
-                    System.Console.WriteLine("tcp server re-creation....");
+                    //System.Console.WriteLine("tcp server re-creation....");
                     server = new FlexibleTcpServer(_scriptFile, _ipAddress, _port, _compilerOptions, _logger, false, _config);
                 }
                 result = server.Start(_ipAddress, _port);
@@ -135,7 +135,7 @@ namespace MossbauerLab.TinyTcpServer.Console.StateMachine
                 _currentState = result ? MachineState.Started : _currentState;
                 return result;
             }
-            System.Console.WriteLine("branch b!");
+            server = new FlexibleTcpServer(_scriptFile, _ipAddress, _port, _compilerOptions, _logger, false, _config);
             result = server.Start();
             if (result)
                 System.Console.WriteLine("=================> Server was started");

@@ -25,6 +25,7 @@ namespace MossbauerLab.TinyTcpServer.Console.Builders
             String assembliesLine = GetConfigurationValue(content, AssembliesKey);
             String[] assemblies = assembliesLine.Split(',');
             String scriptEntryType = GetConfigurationValue(content, ScriptEntryTypeKey);
+
             options.Provider = new CSharpCodeProvider(new Dictionary<String, String>()
             {
                 {"CompilerVersion", compilerVersion}
@@ -46,7 +47,7 @@ namespace MossbauerLab.TinyTcpServer.Console.Builders
                 Int32 index = configLine.IndexOf(KeyValueSeparator, StringComparison.InvariantCulture);
                 if (index <= 0)
                     return null;
-                String value = configLine.Substring(index + 1);
+                String value = configLine.Substring(index + 1).Trim(' ','\t');
                 return value;
             }
             catch (Exception)
