@@ -35,6 +35,9 @@
             this._logsTextBox = new System.Windows.Forms.RichTextBox();
             this._clientsListBox = new System.Windows.Forms.ListBox();
             this._serverSettingsGroup = new System.Windows.Forms.GroupBox();
+            this._compilerOptionsButton = new System.Windows.Forms.Button();
+            this._compilerOptionsTextBox = new System.Windows.Forms.TextBox();
+            this._compilerOptionsLabel = new System.Windows.Forms.Label();
             this._serverScriptButton = new System.Windows.Forms.Button();
             this._serverScriptBox = new System.Windows.Forms.TextBox();
             this._serverScriptLabel = new System.Windows.Forms.Label();
@@ -111,6 +114,9 @@
             // 
             // _serverSettingsGroup
             // 
+            this._serverSettingsGroup.Controls.Add(this._compilerOptionsButton);
+            this._serverSettingsGroup.Controls.Add(this._compilerOptionsTextBox);
+            this._serverSettingsGroup.Controls.Add(this._compilerOptionsLabel);
             this._serverSettingsGroup.Controls.Add(this._serverScriptButton);
             this._serverSettingsGroup.Controls.Add(this._serverScriptBox);
             this._serverSettingsGroup.Controls.Add(this._serverScriptLabel);
@@ -132,6 +138,31 @@
             this._serverSettingsGroup.TabStop = false;
             this._serverSettingsGroup.Text = "Server settings";
             // 
+            // _compilerOptionsButton
+            // 
+            this._compilerOptionsButton.Location = new System.Drawing.Point(194, 169);
+            this._compilerOptionsButton.Name = "_compilerOptionsButton";
+            this._compilerOptionsButton.Size = new System.Drawing.Size(24, 20);
+            this._compilerOptionsButton.TabIndex = 17;
+            this._compilerOptionsButton.Text = "...";
+            this._compilerOptionsButton.UseVisualStyleBackColor = true;
+            // 
+            // _compilerOptionsTextBox
+            // 
+            this._compilerOptionsTextBox.Location = new System.Drawing.Point(97, 169);
+            this._compilerOptionsTextBox.Name = "_compilerOptionsTextBox";
+            this._compilerOptionsTextBox.Size = new System.Drawing.Size(97, 20);
+            this._compilerOptionsTextBox.TabIndex = 16;
+            // 
+            // _compilerOptionsLabel
+            // 
+            this._compilerOptionsLabel.AutoSize = true;
+            this._compilerOptionsLabel.Location = new System.Drawing.Point(8, 172);
+            this._compilerOptionsLabel.Name = "_compilerOptionsLabel";
+            this._compilerOptionsLabel.Size = new System.Drawing.Size(89, 13);
+            this._compilerOptionsLabel.TabIndex = 15;
+            this._compilerOptionsLabel.Text = "Compiler Options:";
+            // 
             // _serverScriptButton
             // 
             this._serverScriptButton.Location = new System.Drawing.Point(194, 130);
@@ -151,7 +182,7 @@
             // _serverScriptLabel
             // 
             this._serverScriptLabel.AutoSize = true;
-            this._serverScriptLabel.Location = new System.Drawing.Point(16, 133);
+            this._serverScriptLabel.Location = new System.Drawing.Point(8, 133);
             this._serverScriptLabel.Name = "_serverScriptLabel";
             this._serverScriptLabel.Size = new System.Drawing.Size(71, 13);
             this._serverScriptLabel.TabIndex = 12;
@@ -176,7 +207,7 @@
             // _logLevelComboBox
             // 
             this._logLevelComboBox.FormattingEnabled = true;
-            this._logLevelComboBox.Location = new System.Drawing.Point(96, 175);
+            this._logLevelComboBox.Location = new System.Drawing.Point(96, 205);
             this._logLevelComboBox.Name = "_logLevelComboBox";
             this._logLevelComboBox.Size = new System.Drawing.Size(121, 21);
             this._logLevelComboBox.TabIndex = 9;
@@ -184,7 +215,7 @@
             // _logLevelLabel
             // 
             this._logLevelLabel.AutoSize = true;
-            this._logLevelLabel.Location = new System.Drawing.Point(19, 183);
+            this._logLevelLabel.Location = new System.Drawing.Point(11, 213);
             this._logLevelLabel.Name = "_logLevelLabel";
             this._logLevelLabel.Size = new System.Drawing.Size(57, 13);
             this._logLevelLabel.TabIndex = 8;
@@ -211,7 +242,7 @@
             // 
             // _applyButton
             // 
-            this._applyButton.Location = new System.Drawing.Point(142, 212);
+            this._applyButton.Location = new System.Drawing.Point(142, 242);
             this._applyButton.Name = "_applyButton";
             this._applyButton.Size = new System.Drawing.Size(75, 23);
             this._applyButton.TabIndex = 6;
@@ -236,7 +267,7 @@
             // _serverSettingsLabel
             // 
             this._serverSettingsLabel.AutoSize = true;
-            this._serverSettingsLabel.Location = new System.Drawing.Point(16, 97);
+            this._serverSettingsLabel.Location = new System.Drawing.Point(8, 97);
             this._serverSettingsLabel.Name = "_serverSettingsLabel";
             this._serverSettingsLabel.Size = new System.Drawing.Size(82, 13);
             this._serverSettingsLabel.TabIndex = 2;
@@ -245,7 +276,7 @@
             // _portLabel
             // 
             this._portLabel.AutoSize = true;
-            this._portLabel.Location = new System.Drawing.Point(16, 61);
+            this._portLabel.Location = new System.Drawing.Point(8, 61);
             this._portLabel.Name = "_portLabel";
             this._portLabel.Size = new System.Drawing.Size(29, 13);
             this._portLabel.TabIndex = 1;
@@ -254,7 +285,7 @@
             // _ipAddressLabel
             // 
             this._ipAddressLabel.AutoSize = true;
-            this._ipAddressLabel.Location = new System.Drawing.Point(16, 29);
+            this._ipAddressLabel.Location = new System.Drawing.Point(8, 29);
             this._ipAddressLabel.Name = "_ipAddressLabel";
             this._ipAddressLabel.Size = new System.Drawing.Size(61, 13);
             this._ipAddressLabel.TabIndex = 0;
@@ -305,6 +336,9 @@
         private System.Windows.Forms.Label _serverScriptLabel;
         private System.Windows.Forms.Button _serverConfigButton;
         private System.Windows.Forms.TextBox _serverConfigBox;
+        private System.Windows.Forms.Button _compilerOptionsButton;
+        private System.Windows.Forms.TextBox _compilerOptionsTextBox;
+        private System.Windows.Forms.Label _compilerOptionsLabel;
     }
 }
 
