@@ -19,5 +19,6 @@ namespace MossbauerLab.TinyTcpServer.Console.Cli.Data
         public UInt16? Port { get; set; }
         public String ScriptFile { get; set; }
         public String SettingsFile { get; set; }  // server setting file
+        public String CompilerOptionsFile { get; set; }
     }
 }

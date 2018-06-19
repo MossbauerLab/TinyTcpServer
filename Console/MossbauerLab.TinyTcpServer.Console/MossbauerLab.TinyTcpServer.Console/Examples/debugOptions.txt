@@ -1,0 +1,1 @@
+--ipaddr=127.0.0.1 --port=6666 --settings="" --script="..\..\Examples\Echo.cs" --compilerOptions="..\..\Examples\EchoOptions.txt"
