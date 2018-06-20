@@ -10,6 +10,7 @@ using log4net.Config;
 using log4net.Core;
 using log4net.Repository.Hierarchy;
 using MossbauerLab.TinyTcpServer.Core.Client;
+using MossbauerLab.TinyTcpServer.Core.Scripting;
 using MossbauerLab.TinyTcpServer.Core.Server;
 using MossbauerLab.TinyTcpServer.MnGUI.Factories;
 using MossbauerLab.TinyTcpServer.MnGUI.Helpers;
@@ -29,7 +30,9 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             _restartButton.Click += (sender, args) => Restart();
             _serverScriptButton.Click += OnChooseScriptFileButtonClick;
             _serverConfigButton.Click += OnChooseConfigFileButtonClick;
+            _compilerOptionsButton.Click += OnChooseCompilerOptionsFileButtonClick;
             _logLevelComboBox.SelectedIndexChanged += (sender, args) => ApplyLogLevel();
+
         }
 
         private void FillControls()
@@ -82,8 +85,10 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             {
                 if (!String.IsNullOrEmpty(_configFile))
                     _serverConfig = TcpServerConfigBuilder.Build(_configFile);
+                if (!String.IsNullOrEmpty(_compilerOptionsFile))
+                    _compilerOptions = CompilerOptionsBuilder.Build(_compilerOptionsFile);
                 if (_ipAddressComboBox.SelectedIndex >= 0 && _portTextBox.Text != null && !String.IsNullOrEmpty(_scriptFile))
-                    _server = ServerFactory.Create(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port, _scriptFile, _logger, _serverConfig);
+                    _server = ServerFactory.Create(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port, _scriptFile, _logger, _compilerOptions, _serverConfig);
                 else
                 {
                     MessageBox.Show(@"Can not start server, please select IP address, port and server script");
@@ -93,8 +98,10 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             }
             else
             {
-                if(_configChanged)
-                    _server = ServerFactory.Create(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port, _scriptFile, _logger, _serverConfig);
+                if (!String.IsNullOrEmpty(_compilerOptionsFile))
+                    _compilerOptions = CompilerOptionsBuilder.Build(_compilerOptionsFile);
+                if (_configChanged)
+                    _server = ServerFactory.Create(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port, _scriptFile, _logger, _compilerOptions, _serverConfig);
                 _server.Start(_ipAddressComboBox.Items[_ipAddressComboBox.SelectedIndex].ToString(), port);
             }
 
@@ -141,8 +148,21 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
             if (file != String.Empty)
             {
                 _configFile = file;
+                _serverConfigBox.Text = file;
                 DisplayConfig();
                 _configChanged = true;
+            }
+        }
+
+        private void OnChooseCompilerOptionsFileButtonClick(Object sender, EventArgs args)
+        {
+            OpenFileDialog openScriptFile = new OpenFileDialog();
+            String file = openScriptFile.Run(@" Text files (*.txt)|*.txt|Config files (*.conf)|*.conf|Config files (*.cfg)|*.cfg|Any file (*.*)|*.*",
+                                             Path.GetFullPath("."), @"Choose Compiler options file", 0);
+            if (file != String.Empty)
+            {
+                _compilerOptionsFile = file;
+                _compilerOptionsTextBox.Text = file;
             }
         }
 
@@ -214,7 +234,9 @@ namespace MossbauerLab.TinyTcpServer.MnGUI.View.Forms
         private ITcpServer _server;
         private String _scriptFile;
         private String _configFile;
+        private String _compilerOptionsFile;
         private TcpServerConfig _serverConfig = new TcpServerConfig();
+        private CompilerOptions _compilerOptions;
         private Boolean _configChanged = false;
         private RichTextBoxAppender _richTextBoxAppender;
         private readonly System.Threading.Timer[] _timers = new System.Threading.Timer[1];

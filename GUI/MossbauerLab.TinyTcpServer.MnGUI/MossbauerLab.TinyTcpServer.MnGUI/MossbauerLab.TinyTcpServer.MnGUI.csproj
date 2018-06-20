@@ -36,8 +36,8 @@
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MossbauerLab.TinyTcpServer.Core, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MossbauerLab.TinyTcpServer.Core.1.2.0\lib\net40\MossbauerLab.TinyTcpServer.Core.dll</HintPath>
+    <Reference Include="MossbauerLab.TinyTcpServer.Core, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MossbauerLab.TinyTcpServer.Core.1.2.1\lib\net40\MossbauerLab.TinyTcpServer.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\CompilerOptionsBuilder.cs" />
     <Compile Include="Helpers\TcpServerConfigBuilder.cs" />
     <Compile Include="LogUtils\RichTextBoxAppender.cs" />
     <Compile Include="Factories\ServerFactory.cs" />
