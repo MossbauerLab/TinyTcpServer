@@ -38,12 +38,25 @@ https://www.nuget.org/packages/MossbauerLab.TinyTcpServer.Core/
 
     public void Init()
     {
+        CompilerOptions options = new CompilerOptions();
+        CSharpCodeProvider provider = new CSharpCodeProvider(new Dictionary<String, String>()
+        {
+            {"CompilerVersion", "v4.0"}
+        });
+        options.Parameters = new CompilerParameters(new string[] {"System.Web"});
+        options.Parameters.GenerateExecutable = false;
+        options.Parameters.GenerateInMemory = true;
+        options.ScriptEntryType = "TestEchoScript.EchoScript";
+        
         _server = new FlexibleTcpServer(Script, LocalIpAddress, ServerPort);    
     }
 `
 
-That is all ! all logics is inside you script
-There are requirement to presence of initial class and entry method
+/*That is all ! all logics is inside you script
+There are requirement to presence of initial class and entry method. Full examples could be found in
+- MossbauerLab.TinyTcpServer.Core.FunctionalTests/Server/TestFlexibleTcpServer.cs
+- In Console and GUI projects with Utils class for getting CompilerOptions and TcpServerConfig from very simple files (Key=Value)
+*/
 
 `
 
