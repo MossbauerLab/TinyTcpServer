@@ -1,5 +1,7 @@
 # TinyTcpServer
 
+# The REPO is archived use Wissance.Hydra (https://github.com/Wissance/Hydra)
+
 # 1. OVERVIEW
 A small tcp server working under Mono or .NET (4.0) and provides hooks for handling data exchange with MULTIPLE clients (works under mono and .net) and BEHAVIOUR CUSTOMIZATION via C# SCRIPT.
 It was fully tested with NUnit Tests on single and multi client (parallel) exchange.
